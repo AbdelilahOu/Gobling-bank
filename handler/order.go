@@ -2,9 +2,7 @@ package handler
 
 import (
 	"fmt"
-	// "context"
 	"net/http"
-
 )
 
 type Order struct{}

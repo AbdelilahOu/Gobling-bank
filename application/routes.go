@@ -2,9 +2,10 @@ package application
 
 import (
 	"net/http"
+
+	"github.com/AbdelilahOu/GoThingy/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/AbdelilahOu/GoThingy/handler"
 )
 
 func loadRoutes() *chi.Mux {
@@ -18,7 +19,7 @@ func loadRoutes() *chi.Mux {
 	})
 	// sub routes
 	router.Route("/orders", loadOrderRoutes)
-	// 
+	//
 	return router
 }
 

@@ -1,22 +1,22 @@
 package application
 
-
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"net/http"
+
 	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
 	router http.Handler
-	rdb *redis.Client
+	rdb    *redis.Client
 }
 
 func New() *App {
 	app := &App{
 		router: loadRoutes(),
-		rdb: redis.NewClient(&redis.Options{})
+		rdb:    redis.NewClient(&redis.Options{}),
 	}
 
 	return app
@@ -25,7 +25,7 @@ func New() *App {
 func (a *App) Start(ctx context.Context) error {
 	// create server
 	server := &http.Server{
-		Addr: ":3000",
+		Addr:    ":3000",
 		Handler: a.router,
 	}
 	// redis health check
