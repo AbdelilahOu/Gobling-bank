@@ -1,6 +1,17 @@
 version: '3.8'  # Use a valid version number
 
 services:
+  postgres:
+    image: postgres:15
+    container_name: my_postgres_db
+    environment:
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_USER: myuser
+      POSTGRES_DB: mydatabase
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
   cache:
     image: redis:6.2-alpine
     restart: always
@@ -13,3 +24,4 @@ services:
 volumes:
   cache:
     driver: local
+  postgres_data:

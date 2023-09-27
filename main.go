@@ -1,14 +1,15 @@
 package main
 
 import (
-	"os"
-	"fmt"
 	"context"
+	"fmt"
+	"os"
 	"os/signal"
+
 	"github.com/AbdelilahOu/GoThingy/application"
 )
 
-func main(){
+func main() {
 	// create app instance
 	app := application.New()
 	// use signals
@@ -18,6 +19,6 @@ func main(){
 	err := app.Start(ctx)
 	// app errors
 	if err != nil {
-		fmt.Println("failed to start app : %w",err)
+		fmt.Println("failed to start app : %w", err)
 	}
 }
