@@ -7,33 +7,32 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
 	router http.Handler
-	rdb    *redis.Client
 	psql   *sql.DB
 }
 
 func New() *App {
+	// load env variables
 	err := godotenv.Load()
-
+	// check if .env exists
 	if err != nil {
 		println(".env doesnt exist!", err)
 	}
-
+	// created db connection
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
-
+	// check if theres errro
 	if err != nil {
-		println("error connecting to database", err)
+		println("error connecting to database", err.Error())
 	}
-	// driver, err := postgres.WithInstance(db, &postgres.Config{})
-
+	// create app instance
 	app := &App{
 		router: loadRoutes(),
-		rdb:    redis.NewClient(&redis.Options{}),
 		psql:   db,
 	}
 
@@ -46,10 +45,27 @@ func (a *App) Start(ctx context.Context) error {
 		Addr:    ":3000",
 		Handler: a.router,
 	}
-	// redis health check
-	err := a.rdb.Ping(ctx).Err()
+	// health check the db connection
+	err := a.psql.Ping()
 	if err != nil {
-		return fmt.Errorf("error connecting to redis : %w", err)
+		println("error pinging db", err)
+	}
+	// created driver & check for error
+	driver, err := postgres.WithInstance(a.psql, &postgres.Config{})
+	if err != nil {
+		println("error creating driver", err)
+	}
+	// create migration instance & check if theres error
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://db/migrations",
+		"postgres", driver,
+	)
+	if err != nil {
+		println("error creating migration instance")
+	}
+	// run migration
+	if err := m.Up(); err != nil {
+		println("error running migration")
 	}
 	// handle SERVER errors
 	err = server.ListenAndServe()
