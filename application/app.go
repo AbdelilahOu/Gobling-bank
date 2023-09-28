@@ -2,14 +2,18 @@ package application
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type App struct {
 	router http.Handler
+	db     *sql.DB
 }
 
 func New() *App {
@@ -19,10 +23,17 @@ func New() *App {
 	if err != nil {
 		println(".env doesnt exist!", err)
 	}
+	//
+	connect, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		println("error connecting to db")
+	}
 	// create app instance
 	app := &App{
-		router: loadRoutes(),
+		db: connect,
 	}
+
+	app.loadRoutes()
 
 	return app
 }
