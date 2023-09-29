@@ -16,3 +16,15 @@ func (repo *OrderRepo) Insert(ctx context.Context, order model.Order) error {
 
 	return nil
 }
+
+func (repo *OrderRepo) Update(ctx context.Context, order model.Order, id string) error {
+	return nil
+}
+
+func (repo *OrderRepo) Delete(ctx context.Context, id string) error {
+	return nil
+}
+
+func (repo *OrderRepo) Select(ctx context.Context, id string) error {
+	return nil
+}
