@@ -6,8 +6,8 @@ services:
     container_name: my_postgres_db
     environment:
       POSTGRES_PASSWORD: mypassword
-      POSTGRES_USER: myuser
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
     ports:
       - 5432:5432
     volumes:
