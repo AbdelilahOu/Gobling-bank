@@ -12,5 +12,7 @@ type OrderRepo struct {
 }
 
 func (repo *OrderRepo) Insert(ctx context.Context, order model.Order) error {
+	repo.DB.Query("INSERT INTO orders")
+
 	return nil
 }
