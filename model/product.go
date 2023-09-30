@@ -1,3 +1,3 @@
 package model
 
-type product struct{}
+type Product struct{}
