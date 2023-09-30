@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -16,6 +15,14 @@ type App struct {
 	db     *sql.DB
 }
 
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "mypassword"
+	dbname   = "postgres"
+)
+
 func New() *App {
 	// load env variables
 	err := godotenv.Load()
@@ -23,14 +30,23 @@ func New() *App {
 	if err != nil {
 		println(".env doesnt exist!", err)
 	}
-	//
-	connect, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	// connection string
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	// connect
+	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		println("error connecting to db")
 	}
+	err = db.Ping()
+	if err != nil {
+		println("error pinging db")
+	}
+	defer db.Close()
 	// create app instance
 	app := &App{
-		db: connect,
+		db: db,
 	}
 	// load routes
 	app.loadRoutes()
