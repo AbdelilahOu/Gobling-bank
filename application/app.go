@@ -32,9 +32,8 @@ func New() *App {
 	app := &App{
 		db: connect,
 	}
-
+	// load routes
 	app.loadRoutes()
-
 	return app
 }
 
