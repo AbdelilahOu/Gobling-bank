@@ -1,3 +1,3 @@
 package model
 
-type orderItem struct{}
+type OrderItem struct{}
