@@ -12,8 +12,6 @@ type ClientRepo struct {
 }
 
 func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
-	repo.DB.Query("INSERT INTO Clients")
-
 	return nil
 }
 
