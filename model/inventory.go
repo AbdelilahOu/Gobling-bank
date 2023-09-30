@@ -1,3 +1,3 @@
 package model
 
-type inventoryMvm struct{}
+type InventoryMvm struct{}
