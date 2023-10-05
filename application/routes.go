@@ -22,6 +22,8 @@ func (a *App) loadRoutes() *chi.Mux {
 	router.Route("/orders", a.loadOrderRoutes)
 	router.Route("/products", a.loadProductRoutes)
 	router.Route("/clients", a.LoadClientsRoutes)
+	router.Route("/inventory", a.LoadInventoryRoutes)
+	router.Route("/orderitems", a.LoadOrderItemRoutes)
 	//
 	return router
 }
@@ -80,4 +82,17 @@ func (a *App) LoadInventoryRoutes(router chi.Router) {
 	router.Get("/{id}", inventoryHandler.GetByID)
 	router.Put("/{id}", inventoryHandler.UpdateByID)
 	router.Delete("/{id}", inventoryHandler.DeleteByID)
+}
+
+func (a *App) LoadOrderItemRoutes(router chi.Router) {
+	orderItemHandler := &handler.OrderItem{
+		Repo: &repository.OrderItemRepo{
+			DB: a.db,
+		},
+	}
+	router.Post("/", orderItemHandler.Create)
+	router.Get("/", orderItemHandler.GetAll)
+	router.Get("/{id}", orderItemHandler.GetByID)
+	router.Put("/{id}", orderItemHandler.UpdateByID)
+	router.Delete("/{id}", orderItemHandler.DeleteByID)
 }
