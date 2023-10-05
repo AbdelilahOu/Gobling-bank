@@ -75,7 +75,7 @@ func (a *App) Start(ctx context.Context) error {
 		return err
 	}
 	// migrations path
-	migrationsPath, err := filepath.Rel("/", "/db/migrations")
+	migrationsPath, err := filepath.Rel("/", "./db/migrations")
 	if err != nil {
 		fmt.Println("Error getting absolute path:", err)
 		return err
