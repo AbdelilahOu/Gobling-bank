@@ -12,7 +12,7 @@ type Order struct {
 }
 
 func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("create order")
+
 }
 
 func (o *Order) GetAll(w http.ResponseWriter, r *http.Request) {
