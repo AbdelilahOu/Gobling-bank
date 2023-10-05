@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS clients (
   phone TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   email TEXT NOT NULL DEFAULT '',
-  address TEXT NOT NULL DEFAULT '',
+  address TEXT NOT NULL DEFAULT ''
 );
 
 -- Create the "products" table

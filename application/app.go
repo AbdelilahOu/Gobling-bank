@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -74,15 +73,9 @@ func (a *App) Start(ctx context.Context) error {
 		fmt.Println("Error getting driver:", err)
 		return err
 	}
-	// migrations path
-	migrationsPath, err := filepath.Rel("/", "./db/migrations")
-	if err != nil {
-		fmt.Println("Error getting absolute path:", err)
-		return err
-	}
 	// Specify the correct path to your migrations directory
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+migrationsPath,
+		"file://./db/migrations",
 		"postgres", driver,
 	)
 	if err != nil {
@@ -91,7 +84,7 @@ func (a *App) Start(ctx context.Context) error {
 	}
 
 	// Apply migrations
-	err = m.Up()
+	err = m.Force(2022)
 	if err != nil && err != migrate.ErrNoChange {
 		fmt.Println("Error applying migrations:", err)
 		return err
