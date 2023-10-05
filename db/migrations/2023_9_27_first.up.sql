@@ -1,4 +1,3 @@
-
 drop table schema_migrations;
 
 -- Create the "clients" table
@@ -32,6 +31,16 @@ CREATE TABLE IF NOT EXISTS orders (
   CONSTRAINT orders_client_id_fkey FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- Create the "inventory_mouvements" table
+CREATE TABLE IF NOT EXISTS inventory_mouvements (
+  id TEXT NOT NULL PRIMARY KEY,
+  date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  quantity BIGINT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  product_id TEXT NOT NULL,
+  CONSTRAINT inventory_mouvements_product_id_fkey FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 -- Create the "order_items" table
 CREATE TABLE IF NOT EXISTS order_items (
   id TEXT NOT NULL PRIMARY KEY,
@@ -45,15 +54,6 @@ CREATE TABLE IF NOT EXISTS order_items (
   CONSTRAINT order_items_inventory_id_fkey FOREIGN KEY (inventory_id) REFERENCES inventory_mouvements (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Create the "inventory_mouvements" table
-CREATE TABLE IF NOT EXISTS inventory_mouvements (
-  id TEXT NOT NULL PRIMARY KEY,
-  date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  quantity BIGINT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  product_id TEXT NOT NULL,
-  CONSTRAINT inventory_mouvements_product_id_fkey FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE ON UPDATE CASCADE
-);
 
 -- Create unique indexes
 CREATE UNIQUE INDEX IF NOT EXISTS order_items_inventory_id_key ON order_items (inventory_id);

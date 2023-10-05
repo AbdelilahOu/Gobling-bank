@@ -67,12 +67,12 @@ func (a *App) Start(ctx context.Context) error {
 		Handler: a.router,
 	}
 
-	err := runDBMigrations(a.db)
-	if err != nil {
-		fmt.Println("Error running migrations:", err)
-	}
+	// err := runDBMigrations(a.db)
+	// if err != nil {
+	// 	fmt.Println("Error running migrations:", err)
+	// }
 	// Handle server errors
-	err = server.ListenAndServe()
+	err := server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("Error starting the server: %v\n", err)
 		return err

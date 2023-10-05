@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func (a *App) loadRoutes() *chi.Mux {
+func (a *App) loadRoutes() {
 	// create chi router
 	router := chi.NewRouter()
 	//  use logger middleware
@@ -25,7 +25,7 @@ func (a *App) loadRoutes() *chi.Mux {
 	router.Route("/inventory", a.LoadInventoryRoutes)
 	router.Route("/orderitems", a.LoadOrderItemRoutes)
 	//
-	return router
+	a.router = router
 }
 
 func (a *App) loadOrderRoutes(router chi.Router) {
