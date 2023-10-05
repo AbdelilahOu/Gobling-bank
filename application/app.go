@@ -67,8 +67,20 @@ func (a *App) Start(ctx context.Context) error {
 		Handler: a.router,
 	}
 
+	err := runDBMigrations(a.db)
+	// Handle server errors
+	err = server.ListenAndServe()
+	if err != nil {
+		fmt.Printf("Error starting the server: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+
+func runDBMigrations(db *sql.DB) error {
 	// Run migrations
-	driver, err := postgres.WithInstance(a.db, &postgres.Config{})
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		fmt.Println("Error getting driver:", err)
 		return err
@@ -89,13 +101,5 @@ func (a *App) Start(ctx context.Context) error {
 		fmt.Println("Error applying migrations:", err)
 		return err
 	}
-
-	// Handle server errors
-	err = server.ListenAndServe()
-	if err != nil {
-		fmt.Printf("Error starting the server: %v\n", err)
-		return err
-	}
-
 	return nil
 }
