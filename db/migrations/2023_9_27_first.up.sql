@@ -1,3 +1,6 @@
+
+drop table schema_migrations;
+
 -- Create the "clients" table
 CREATE TABLE IF NOT EXISTS clients (
   id TEXT NOT NULL PRIMARY KEY,
