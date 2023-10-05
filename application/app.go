@@ -68,6 +68,9 @@ func (a *App) Start(ctx context.Context) error {
 	}
 
 	err := runDBMigrations(a.db)
+	if err != nil {
+		fmt.Println("Error running migrations:", err)
+	}
 	// Handle server errors
 	err = server.ListenAndServe()
 	if err != nil {
@@ -82,7 +85,6 @@ func runDBMigrations(db *sql.DB) error {
 	// Run migrations
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		fmt.Println("Error getting driver:", err)
 		return err
 	}
 	// Specify the correct path to your migrations directory
@@ -91,14 +93,12 @@ func runDBMigrations(db *sql.DB) error {
 		"postgres", driver,
 	)
 	if err != nil {
-		fmt.Println("Error creating migrations instance:", err)
 		return err
 	}
 
 	// Apply migrations
-	err = m.Force(2022)
+	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		fmt.Println("Error applying migrations:", err)
 		return err
 	}
 	return nil
