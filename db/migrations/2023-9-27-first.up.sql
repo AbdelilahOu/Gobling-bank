@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS clients (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   email TEXT NOT NULL DEFAULT '',
   address TEXT NOT NULL DEFAULT '',
-  image TEXT NOT NULL DEFAULT ''
 );
 
 -- Create the "products" table
@@ -26,15 +25,15 @@ CREATE TABLE IF NOT EXISTS orders (
   id TEXT NOT NULL PRIMARY KEY,
   status TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  seller_id TEXT NOT NULL,
-  CONSTRAINT orders_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES sellers (id) ON DELETE CASCADE ON UPDATE CASCADE
+  client_id TEXT NOT NULL,
+  CONSTRAINT orders_client_id_fkey FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Create the "order_items" table
 CREATE TABLE IF NOT EXISTS order_items (
   id TEXT NOT NULL PRIMARY KEY,
   product_id TEXT NOT NULL,
-  price REAL, -- Use REAL for price instead of REAl
+  new_price REAL, -- Use REAL for price instead of REAl
   order_id TEXT NOT NULL,
   inventory_id TEXT NOT NULL,
   quantity BIGINT NOT NULL,
@@ -47,7 +46,6 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE TABLE IF NOT EXISTS inventory_mouvements (
   id TEXT NOT NULL PRIMARY KEY,
   date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  model TEXT NOT NULL,
   quantity BIGINT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   product_id TEXT NOT NULL,
