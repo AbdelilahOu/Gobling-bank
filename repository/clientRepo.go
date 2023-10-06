@@ -12,6 +12,7 @@ type ClientRepo struct {
 }
 
 func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
+
 	return nil
 }
 
@@ -24,5 +25,9 @@ func (repo *ClientRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (repo *ClientRepo) Select(ctx context.Context, id string) error {
+	return nil
+}
+
+func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size int) error {
 	return nil
 }
