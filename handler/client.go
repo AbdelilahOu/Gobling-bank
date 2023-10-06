@@ -122,6 +122,63 @@ func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	// body struct
+	var body struct {
+		Firstname string `json:"firstname"`
+		Lastname  string `json:"lastname"`
+		Phone     string `json:"phone"`
+		Email     string `json:"email"`
+	}
+	// populat nody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// get params
+	idParam := chi.URLParam(r, "id")
+	// check if param exist
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// check if client exists
+	// get client
+	_, err := o.Repo.Select(r.Context(), idParam)
+	// check for erros
+	if err != nil {
+		fmt.Println("error fetching client", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// update client
+	err = o.Repo.Update(r.Context(), model.Client{
+		Id:        uuid.MustParse(idParam),
+		Firstname: body.Firstname,
+		Lastname:  body.Lastname,
+		Phone:     body.Phone,
+		Email:     body.Email,
+	}, idParam)
+	// check for errors
+	if err != nil {
+		fmt.Println("error updating client", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	res, err := json.Marshal(model.Client{
+		Id:        uuid.MustParse(idParam),
+		Firstname: body.Firstname,
+		Lastname:  body.Lastname,
+		Phone:     body.Phone,
+		Email:     body.Email,
+	})
+	if err != nil {
+		fmt.Println("failed to marshal:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(res)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Client) DeleteByID(w http.ResponseWriter, r *http.Request) {
