@@ -9,6 +9,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
@@ -86,21 +87,59 @@ func (o *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 	//
 	const size = 20
-	err = o.Repo.SelectAll(r.Context(), page, size)
+	_, err = o.Repo.SelectAll(r.Context(), page, size)
 	if err != nil {
 		fmt.Println("error fetching client", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
+	// w.Write(_result)
 	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
+	// get id param
+	idParam := chi.URLParam(r, "id")
+	// check if param exist
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// get client
+	c, err := o.Repo.Select(r.Context(), idParam)
+	// check for erros
+	if err != nil {
+		fmt.Println("error fetching client", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// turn into json
+	if err := json.NewEncoder(w).Encode(c); err != nil {
+		fmt.Println("failed to marshal:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Client) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	// get params
+	idParam := chi.URLParam(r, "id")
+	// check if param exist
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// delete order
+	err := o.Repo.Delete(r.Context(), idParam)
+	// check for errors
+	if err != nil {
+		fmt.Println("error deleting client", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	w.WriteHeader(http.StatusOK)
 }
