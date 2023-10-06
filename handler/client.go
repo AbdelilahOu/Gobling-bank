@@ -87,6 +87,13 @@ func (o *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 	//
 	const size = 20
 	err = o.Repo.SelectAll(r.Context(), page, size)
+	if err != nil {
+		fmt.Println("error fetching client", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
