@@ -9,6 +9,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
@@ -113,6 +114,28 @@ func (o *Product) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) GetByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	// check for id
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	client, err := o.Repo.Select(r.Context(), id)
+	if err != nil {
+		fmt.Println("error getting product")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// get json
+	res, err := json.Marshal(client)
+	if err != nil {
+		fmt.Println("error marshaling product")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 func (o *Product) UpdateByID(w http.ResponseWriter, r *http.Request) {
