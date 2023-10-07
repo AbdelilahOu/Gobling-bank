@@ -120,14 +120,14 @@ func (o *Product) GetByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	client, err := o.Repo.Select(r.Context(), id)
+	product, err := o.Repo.Select(r.Context(), id)
 	if err != nil {
 		fmt.Println("error getting product")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	// get json
-	res, err := json.Marshal(client)
+	res, err := json.Marshal(product)
 	if err != nil {
 		fmt.Println("error marshaling product")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -139,6 +139,64 @@ func (o *Product) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	// body struct
+	var body struct {
+		Name        string  `json:"name"`
+		Price       float64 `json:"price"`
+		Description string  `json:"description"`
+		Tva         float64 `json:"tva"`
+	}
+	// get body data
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		fmt.Println("error decoding body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// get id
+	id := chi.URLParam(r, "id")
+	// check for id
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	_, err = o.Repo.Select(r.Context(), id)
+	// check for erros
+	if err != nil {
+		fmt.Println("error fetching product", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// update product
+	err = o.Repo.Update(r.Context(), model.Product{
+		Id:          uuid.MustParse(id),
+		Name:        body.Name,
+		Description: body.Description,
+		Price:       body.Price,
+		Tva:         body.Tva,
+	}, id)
+	// check for errors
+	if err != nil {
+		fmt.Println("error updating product", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	res, err := json.Marshal(model.Product{
+		Id:          uuid.MustParse(id),
+		Name:        body.Name,
+		Description: body.Description,
+		Price:       body.Price,
+		Tva:         body.Tva,
+	})
+	if err != nil {
+		fmt.Println("failed to marshal:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(res)
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func (o *Product) DeleteByID(w http.ResponseWriter, r *http.Request) {
