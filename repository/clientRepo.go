@@ -41,11 +41,11 @@ func (repo *ClientRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, error) {
 	// execute
-	row := repo.DB.QueryRow("SELECT * FROM clients WHERE id = $1", id)
+	row := repo.DB.QueryRow("SELECT firstname, lastname, email, phone, created_at, adress  FROM clients WHERE id = $1", id)
 	// var
 	var c model.Client
 	// get client
-	err := row.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone)
+	err := row.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone, &c.Created_at, &c.Adress)
 	// check for err
 	if err != nil {
 		fmt.Println("error scanning client", err)
@@ -62,7 +62,7 @@ type GetCAllResult struct {
 
 func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetCAllResult, error) {
 	// get clients
-	rows, err := repo.DB.Query("SELECT * FROM clients WHERE id > ?", cursor)
+	rows, err := repo.DB.Query("SELECT * FROM clients WHERE id > $1", cursor)
 	if err != nil {
 		fmt.Println("error getting clients", err)
 		return GetCAllResult{}, err

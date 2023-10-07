@@ -145,6 +145,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		Lastname  string `json:"lastname"`
 		Phone     string `json:"phone"`
 		Email     string `json:"email"`
+		Adress    string `json:"adress"`
 	}
 	// populat nody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -174,6 +175,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		Lastname:  body.Lastname,
 		Phone:     body.Phone,
 		Email:     body.Email,
+		Adress:    body.Adress,
 	}, idParam)
 	// check for errors
 	if err != nil {
@@ -188,6 +190,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		Lastname:  body.Lastname,
 		Phone:     body.Phone,
 		Email:     body.Email,
+		Adress:    body.Adress,
 	})
 	if err != nil {
 		fmt.Println("failed to marshal:", err)

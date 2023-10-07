@@ -12,5 +12,6 @@ type Client struct {
 	Lastname   string
 	Phone      string
 	Email      string
+	Adress     string
 	Created_at *time.Time
 }
