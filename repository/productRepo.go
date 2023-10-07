@@ -23,10 +23,21 @@ func (repo *ProductRepo) Insert(ctx context.Context, product model.Product) erro
 }
 
 func (repo *ProductRepo) Update(ctx context.Context, product model.Product, id string) error {
+	_, err := repo.DB.Exec("UPDATE products SET name = $1, description = $2, price = $3, tva = $4 WHERE id = $5", product.Name, product.Description, product.Price, product.Tva, id)
+	// check for error
+	if err != nil {
+		fmt.Println("error updating product :", err)
+		return err
+	}
 	return nil
 }
 
 func (repo *ProductRepo) Delete(ctx context.Context, id string) error {
+	_, err := repo.DB.Exec("DELETE FROM products WHERE id = $1", id)
+	if err != nil {
+		fmt.Println("error deleting product", err)
+		return err
+	}
 	return nil
 }
 
@@ -60,7 +71,7 @@ func (repo *ProductRepo) SelectAll(ctx context.Context, cursor uint64, size uint
 	}
 	// close rows after
 	defer rows.Close()
-	// get products as model.client
+	// get products as model.product
 	var products []model.Product
 	for rows.Next() {
 		var c model.Product
