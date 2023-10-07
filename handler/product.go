@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/AbdelilahOu/GoThingy/model"
@@ -67,6 +68,48 @@ func (o *Product) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) GetAll(w http.ResponseWriter, r *http.Request) {
+	// pagination
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	// check
+	if limitStr == "" {
+		limitStr = "10"
+	}
+	// inisialise pageStr if not provided
+	if pageStr == "" {
+		pageStr = "0"
+	}
+	//convert page into int
+	const decimal = 10
+	const bitSize = 64
+	page, err := strconv.ParseUint(pageStr, decimal, bitSize)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	size, err := strconv.ParseUint(limitStr, decimal, bitSize)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// get products
+	products, err := o.Repo.SelectAll(r.Context(), page, size)
+	if err != nil {
+		fmt.Println("error getting products")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// get json
+	res, err := json.Marshal(products)
+	if err != nil {
+		fmt.Println("error marshaling products")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	//
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+
 }
 
 func (o *Product) GetByID(w http.ResponseWriter, r *http.Request) {
