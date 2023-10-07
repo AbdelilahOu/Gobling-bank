@@ -7,11 +7,11 @@ import (
 )
 
 type Client struct {
-	Id         uuid.UUID
-	Firstname  string
-	Lastname   string
-	Phone      string
-	Email      string
-	Adress     string
-	Created_at *time.Time
+	Id        uuid.UUID
+	Firstname string
+	Lastname  string
+	Phone     string
+	Email     string
+	Adress    string
+	CreatedAt *time.Time
 }

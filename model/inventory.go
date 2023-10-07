@@ -7,9 +7,9 @@ import (
 )
 
 type InventoryMvm struct {
-	Id         uuid.UUID
-	Date       *time.Time
-	Quantity   int
-	Created_at *time.Time
-	ProductId  uuid.UUID
+	Id        uuid.UUID
+	Date      *time.Time
+	Quantity  int
+	CreatedAt *time.Time
+	ProductId uuid.UUID
 }

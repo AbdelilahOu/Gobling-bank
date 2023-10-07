@@ -12,5 +12,5 @@ type Product struct {
 	Description string
 	Price       float64
 	Tva         float64
-	Created_at  *time.Time
+	CreatedAt   *time.Time
 }

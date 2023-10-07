@@ -52,7 +52,7 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 	// var
 	var c model.Client
 	// get client
-	err := row.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone, &c.Created_at, &c.Adress)
+	err := row.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone, &c.CreatedAt, &c.Adress)
 	// check for err
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)

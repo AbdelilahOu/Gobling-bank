@@ -42,12 +42,12 @@ func (o *Client) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	// create new client model
 	client := model.Client{
-		Id:         id,
-		Firstname:  body.Firstname,
-		Lastname:   body.Lastname,
-		Phone:      body.Phone,
-		Email:      body.Email,
-		Created_at: &now,
+		Id:        id,
+		Firstname: body.Firstname,
+		Lastname:  body.Lastname,
+		Phone:     body.Phone,
+		Email:     body.Email,
+		CreatedAt: &now,
 	}
 	// insert into db
 	err = o.Repo.Insert(r.Context(), client)
