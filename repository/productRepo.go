@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/AbdelilahOu/GoThingy/model"
 )
@@ -23,6 +24,45 @@ func (repo *ProductRepo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (repo *ProductRepo) Select(ctx context.Context, id string) error {
-	return nil
+func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, error) {
+	return model.Product{}, nil
+}
+
+type GetPAllResult struct {
+	Products []model.Product
+	Cursor   uint64
+}
+
+func (repo *ProductRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetPAllResult, error) {
+	// get products
+	rows, err := repo.DB.Query("SELECT * FROM products WHERE id > $1 LIMIT $2", cursor, size)
+	if err != nil {
+		fmt.Println("error getting products", err)
+		return GetPAllResult{}, err
+	}
+	// close rows after
+	defer rows.Close()
+	// get products as model.client
+	var products []model.Product
+	for rows.Next() {
+		var c model.Product
+		// scane
+		err := rows.Scan(&c.Id, &c.Name)
+		if err != nil {
+			fmt.Println("error scanning products", err)
+			return GetPAllResult{}, err
+		}
+		//
+		products = append(products, c)
+
+	}
+	// error while eterating
+	err = rows.Err()
+	if err != nil {
+		fmt.Println("error eterating over rows")
+	}
+	// last result
+	return GetPAllResult{
+		Products: products,
+	}, nil
 }
