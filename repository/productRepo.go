@@ -13,6 +13,11 @@ type ProductRepo struct {
 	DB *sql.DB
 }
 
+type GetPAllResult struct {
+	Products []model.Product
+	Cursor   uint64
+}
+
 func (repo *ProductRepo) Insert(ctx context.Context, product model.Product) error {
 	_, err := repo.DB.Exec("INSERT INTO products (id, name, description, price, tva) VALUES ($1, $2, $3, $4, $5)", product.Id, product.Name, product.Description, product.Price, product.Tva)
 	if err != nil {
@@ -20,7 +25,6 @@ func (repo *ProductRepo) Insert(ctx context.Context, product model.Product) erro
 		return err
 	}
 	return nil
-
 }
 
 func (repo *ProductRepo) Update(ctx context.Context, product model.Product, id string) error {
@@ -62,11 +66,6 @@ func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, 
 	}
 	//
 	return p, nil
-}
-
-type GetPAllResult struct {
-	Products []model.Product
-	Cursor   uint64
 }
 
 func (repo *ProductRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetPAllResult, error) {
