@@ -55,17 +55,17 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 	return c, nil
 }
 
-type GetAllResult struct {
+type GetCAllResult struct {
 	Clients []model.Client
 	Cursor  uint64
 }
 
-func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size int) (GetAllResult, error) {
+func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetCAllResult, error) {
 	// get clients
 	rows, err := repo.DB.Query("SELECT * FROM clients WHERE id > ?", cursor)
 	if err != nil {
 		fmt.Println("error getting clients", err)
-		return GetAllResult{}, err
+		return GetCAllResult{}, err
 	}
 	// close rows after
 	defer rows.Close()
@@ -77,7 +77,7 @@ func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size int) 
 		err := rows.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone)
 		if err != nil {
 			fmt.Println("error scanning clients", err)
-			return GetAllResult{}, err
+			return GetCAllResult{}, err
 		}
 		//
 		clients = append(clients, c)
@@ -89,7 +89,7 @@ func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size int) 
 		fmt.Println("error eterating over rows")
 	}
 	// last result
-	return GetAllResult{
+	return GetCAllResult{
 		Clients: clients,
 	}, nil
 }

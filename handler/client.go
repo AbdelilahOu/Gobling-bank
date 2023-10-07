@@ -73,6 +73,11 @@ func (o *Client) Create(w http.ResponseWriter, r *http.Request) {
 func (o *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 	// pagination
 	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	// check
+	if limitStr == "" {
+		limitStr = "10"
+	}
 	// inisialise pageStr if not provided
 	if pageStr == "" {
 		pageStr = "0"
@@ -85,16 +90,28 @@ func (o *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	size, err := strconv.ParseUint(limitStr, decimal, bitSize)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	//
-	const size = 20
-	_, err = o.Repo.SelectAll(r.Context(), page, size)
+	clients, err := o.Repo.SelectAll(r.Context(), page, size)
 	if err != nil {
 		fmt.Println("error fetching client", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// w.Write(_result)
+	// turn into json
+	res, err := json.Marshal(clients)
+	if err != nil {
+		fmt.Println("failed to marshal:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
 	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
