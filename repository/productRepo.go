@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorMessages "github.com/AbdelilahOu/GoThingy/constants"
 	"github.com/AbdelilahOu/GoThingy/model"
 )
 
@@ -49,6 +50,12 @@ func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, 
 	// get product
 	err := row.Scan(&p.Id, &p.Name, &p.Description, &p.Price, &p.Tva)
 	// check for err
+	if err == sql.ErrNoRows {
+		fmt.Println("no redcord exisist", err)
+		return model.Product{}, errorMessages.RecordDoesntExist
+
+	}
+	//
 	if err != nil {
 		fmt.Println("error scanning product", err)
 		return model.Product{}, err

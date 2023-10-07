@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorMessages "github.com/AbdelilahOu/GoThingy/constants"
 	"github.com/AbdelilahOu/GoThingy/model"
 )
 
@@ -23,6 +24,7 @@ func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
 
 func (repo *ClientRepo) Update(ctx context.Context, client model.Client, id string) error {
 	_, err := repo.DB.Exec("UPDATE clients SET firstname = $1, lastname = $2, email = $3, phone = $4 WHERE id = $5", client.Firstname, client.Lastname, client.Email, client.Phone, id)
+
 	if err != nil {
 		fmt.Println("error updating client :", err)
 		return err
@@ -47,6 +49,12 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 	// get client
 	err := row.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone, &c.Created_at, &c.Adress)
 	// check for err
+	if err == sql.ErrNoRows {
+		fmt.Println("no redcord exisist", err)
+		return model.Client{}, errorMessages.RecordDoesntExist
+
+	}
+	//
 	if err != nil {
 		fmt.Println("error scanning client", err)
 		return model.Client{}, err
