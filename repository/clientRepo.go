@@ -13,6 +13,11 @@ type ClientRepo struct {
 	DB *sql.DB
 }
 
+type GetCAllResult struct {
+	Clients []model.Client
+	Cursor  uint64
+}
+
 func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
 	_, err := repo.DB.Exec("INSERT INTO clients (id, firstname, lastname, email, phone) VALUES ($1, $2, $3, $4, $5)", client.Id, client.Firstname, client.Lastname, client.Email, client.Phone)
 	if err != nil {
@@ -61,11 +66,6 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 	}
 	//
 	return c, nil
-}
-
-type GetCAllResult struct {
-	Clients []model.Client
-	Cursor  uint64
 }
 
 func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetCAllResult, error) {
