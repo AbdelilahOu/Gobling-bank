@@ -13,7 +13,13 @@ type ProductRepo struct {
 }
 
 func (repo *ProductRepo) Insert(ctx context.Context, product model.Product) error {
+	_, err := repo.DB.Exec("INSERT INTO products (id, name, description, price, tva) VALUES ($1, $2, $3, $4, $5)", product.Id, product.Name, product.Description, product.Price, product.Tva)
+	if err != nil {
+		fmt.Println("error inserting product", err)
+		return err
+	}
 	return nil
+
 }
 
 func (repo *ProductRepo) Update(ctx context.Context, product model.Product, id string) error {
@@ -25,7 +31,19 @@ func (repo *ProductRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, error) {
-	return model.Product{}, nil
+	// execute
+	row := repo.DB.QueryRow("SELECT * FROM products WHERE id = $1", id)
+	// var
+	var p model.Product
+	// get product
+	err := row.Scan(&p.Id, &p.Name, &p.Description, &p.Price, &p.Tva)
+	// check for err
+	if err != nil {
+		fmt.Println("error scanning product", err)
+		return model.Product{}, err
+	}
+	//
+	return p, nil
 }
 
 type GetPAllResult struct {
