@@ -142,4 +142,21 @@ func (o *Product) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	// get params
+	idParam := chi.URLParam(r, "id")
+	// check if param exist
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// delete order
+	err := o.Repo.Delete(r.Context(), idParam)
+	// check for errors
+	if err != nil {
+		fmt.Println("error deleting product", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	w.WriteHeader(http.StatusOK)
 }
