@@ -7,6 +7,7 @@ import (
 
 	errorMessages "github.com/AbdelilahOu/GoThingy/constants"
 	"github.com/AbdelilahOu/GoThingy/model"
+	"github.com/google/uuid"
 )
 
 type InventoryRepo struct {
@@ -18,17 +19,17 @@ type GetIAllResult struct {
 	Cursor    uint64
 }
 
-func (repo *InventoryRepo) Insert(ctx context.Context, inventory model.InventoryMvm) error {
-	_, err := repo.DB.Exec("")
+func (repo *InventoryRepo) Insert(ctx context.Context, inventory model.InventoryMvm) (uuid.UUID, error) {
+	_, err := repo.DB.Exec("INSERT INTO inventory_mouvements (id,product_id,quantity) VALUES ($1,$2,$3)", inventory.Id, inventory.ProductId, inventory.Quantity)
 	if err != nil {
 		fmt.Println("error inserting inventory", err)
-		return err
+		return uuid.UUID{}, err
 	}
-	return nil
+	return inventory.Id, nil
 }
 
 func (repo *InventoryRepo) Update(ctx context.Context, inventory model.InventoryMvm, id string) error {
-	_, err := repo.DB.Exec("")
+	_, err := repo.DB.Exec("UPDATE inventory_mouvements SET quantity=$1 WHERE id=$2", inventory.Quantity, id)
 
 	if err != nil {
 		fmt.Println("error updating inventory :", err)
@@ -38,7 +39,7 @@ func (repo *InventoryRepo) Update(ctx context.Context, inventory model.Inventory
 }
 
 func (repo *InventoryRepo) Delete(ctx context.Context, id string) error {
-	_, err := repo.DB.Exec("", id)
+	_, err := repo.DB.Exec("DELETE FROM inventory_mouvements WHERE id = $1", id)
 	if err != nil {
 		fmt.Println("error deleting inventory", err)
 		return err
@@ -48,7 +49,7 @@ func (repo *InventoryRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *InventoryRepo) Select(ctx context.Context, id string) (model.InventoryMvm, error) {
 	// execute
-	row := repo.DB.QueryRow("", id)
+	row := repo.DB.QueryRow("SELECT * FROM inventory_mouvements WHERE id = $1", id)
 	// var
 	var c model.InventoryMvm
 	// get inventory
@@ -70,7 +71,7 @@ func (repo *InventoryRepo) Select(ctx context.Context, id string) (model.Invento
 
 func (repo *InventoryRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetIAllResult, error) {
 	// get inventory_mouvements
-	rows, err := repo.DB.Query("", cursor)
+	rows, err := repo.DB.Query("SELECT * FROM inventory_mouvements WHERE id > $1 LIMIT $2", cursor, size)
 	if err != nil {
 		fmt.Println("error getting inventory_mouvements", err)
 		return GetIAllResult{}, err
