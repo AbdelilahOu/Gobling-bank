@@ -19,7 +19,7 @@ type GetOAllResult struct {
 }
 
 func (repo *OrderRepo) Insert(ctx context.Context, order model.Order) error {
-	_, err := repo.DB.Exec("")
+	_, err := repo.DB.Exec("INSERT INTO orders (id, client_id, status) VALUES ($1, $2, $3, $4)", order.Id, order.ClientId, order.Status)
 	if err != nil {
 		fmt.Println("error inserting order", err)
 		return err
@@ -28,7 +28,7 @@ func (repo *OrderRepo) Insert(ctx context.Context, order model.Order) error {
 }
 
 func (repo *OrderRepo) Update(ctx context.Context, order model.Order, id string) error {
-	_, err := repo.DB.Exec("")
+	_, err := repo.DB.Exec("UPDATE orders SET status = $1 WHERE id = $2", order.Status, id)
 
 	if err != nil {
 		fmt.Println("error updating order :", err)
@@ -48,7 +48,7 @@ func (repo *OrderRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *OrderRepo) Select(ctx context.Context, id string) (model.Order, error) {
 	// execute
-	row := repo.DB.QueryRow("", id)
+	row := repo.DB.QueryRow("SELECT * FROM orders WHERE id = $1", id)
 	// var
 	var c model.Order
 	// get order
@@ -70,7 +70,7 @@ func (repo *OrderRepo) Select(ctx context.Context, id string) (model.Order, erro
 
 func (repo *OrderRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetOAllResult, error) {
 	// get orders
-	rows, err := repo.DB.Query("SELECT * FROM orders WHERE id > $1", cursor)
+	rows, err := repo.DB.Query("SELECT * FROM orders WHERE id > $1 LIMIT $2", cursor, size)
 	if err != nil {
 		fmt.Println("error getting orders", err)
 		return GetOAllResult{}, err
