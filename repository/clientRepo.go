@@ -19,7 +19,8 @@ type GetCAllResult struct {
 }
 
 func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
-	_, err := repo.DB.Exec("INSERT INTO clients (id, firstname, lastname, email, phone) VALUES ($1, $2, $3, $4, $5)", client.Id, client.Firstname, client.Lastname, client.Email, client.Phone)
+	InsertQuery := "INSERT INTO clients (id, firstname, lastname, email, phone) VALUES ($1, $2, $3, $4, $5)"
+	_, err := repo.DB.Exec(InsertQuery, client.Id, client.Firstname, client.Lastname, client.Email, client.Phone)
 	if err != nil {
 		fmt.Println("error inserting client", err)
 		return err
@@ -28,7 +29,8 @@ func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
 }
 
 func (repo *ClientRepo) Update(ctx context.Context, client model.Client, id string) error {
-	_, err := repo.DB.Exec("UPDATE clients SET firstname = $1, lastname = $2, email = $3, phone = $4 WHERE id = $5", client.Firstname, client.Lastname, client.Email, client.Phone, id)
+	UpdateQuery := "UPDATE clients SET firstname = $1, lastname = $2, email = $3, phone = $4 WHERE id = $5"
+	_, err := repo.DB.Exec(UpdateQuery, client.Firstname, client.Lastname, client.Email, client.Phone, id)
 
 	if err != nil {
 		fmt.Println("error updating client :", err)
@@ -38,7 +40,8 @@ func (repo *ClientRepo) Update(ctx context.Context, client model.Client, id stri
 }
 
 func (repo *ClientRepo) Delete(ctx context.Context, id string) error {
-	_, err := repo.DB.Exec("DELETE FROM clients WHERE id = $1", id)
+	DeleteQuery := "DELETE FROM clients WHERE id = $1"
+	_, err := repo.DB.Exec(DeleteQuery, id)
 	if err != nil {
 		fmt.Println("error deleting client", err)
 		return err
@@ -47,8 +50,9 @@ func (repo *ClientRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, error) {
+	SelectQuery := "SELECT firstname, lastname, email, phone, created_at, adress  FROM clients WHERE id = $1"
 	// execute
-	row := repo.DB.QueryRow("SELECT firstname, lastname, email, phone, created_at, adress  FROM clients WHERE id = $1", id)
+	row := repo.DB.QueryRow(SelectQuery, id)
 	// var
 	var c model.Client
 	// get client
@@ -69,8 +73,9 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 }
 
 func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetCAllResult, error) {
+	SelectAllQuery := "SELECT * FROM clients WHERE id > $1 LIMIT $2"
 	// get clients
-	rows, err := repo.DB.Query("SELECT * FROM clients WHERE id > $1", cursor)
+	rows, err := repo.DB.Query(SelectAllQuery, cursor, size)
 	if err != nil {
 		fmt.Println("error getting clients", err)
 		return GetCAllResult{}, err
