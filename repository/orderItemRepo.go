@@ -14,7 +14,7 @@ type OrderItemRepo struct {
 }
 
 func (repo *OrderItemRepo) Insert(ctx context.Context, orderItem model.OrderItem) error {
-	_, err := repo.DB.Exec("")
+	_, err := repo.DB.Exec("INSERT INTO order_items (order_id, product_id, quantity, new_price, inventory_id) VALUES ($1, $2, $3, $4, $5)", orderItem.OrderId, orderItem.ProductId, orderItem.Quantity, orderItem.NewPrice, orderItem.InventoryId)
 	if err != nil {
 		fmt.Println("error inserting orderItem", err)
 		return err
@@ -23,7 +23,7 @@ func (repo *OrderItemRepo) Insert(ctx context.Context, orderItem model.OrderItem
 }
 
 func (repo *OrderItemRepo) Update(ctx context.Context, orderItem model.OrderItem, id string) error {
-	_, err := repo.DB.Exec("")
+	_, err := repo.DB.Exec("UPDATE order_items SET quantity = $1, new_price = $2 WHERE id = $3", orderItem.Quantity, orderItem.NewPrice)
 
 	if err != nil {
 		fmt.Println("error updating orderItem :", err)
@@ -43,7 +43,7 @@ func (repo *OrderItemRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *OrderItemRepo) Select(ctx context.Context, id string) (model.OrderItem, error) {
 	// execute
-	row := repo.DB.QueryRow("", id)
+	row := repo.DB.QueryRow("SELECT * FROM order_items WHERE id = $1", id)
 	// var
 	var c model.OrderItem
 	// get orderItem
