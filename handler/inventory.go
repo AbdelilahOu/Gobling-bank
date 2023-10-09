@@ -71,11 +71,24 @@ func (o *Inventory) Create(w http.ResponseWriter, r *http.Request) {
 func (o *Inventory) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
-func (o *Inventory) GetByID(w http.ResponseWriter, r *http.Request) {
-}
-
 func (o *Inventory) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Inventory) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	idParam := r.URL.Query().Get("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	//
+	err = o.Repo.Delete(r.Context(), id.String())
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	//
+	w.WriteHeader(http.StatusOK)
 }
