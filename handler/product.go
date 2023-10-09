@@ -63,8 +63,8 @@ func (o *Product) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//
-	w.WriteHeader(http.StatusCreated)
 	w.Write(res)
+	w.WriteHeader(http.StatusCreated)
 
 }
 
