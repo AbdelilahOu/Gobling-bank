@@ -96,8 +96,6 @@ func (a *App) LoadOrderItemRoutes(router chi.Router) {
 		},
 	}
 	router.Post("/", orderItemHandler.Create)
-	router.Get("/", orderItemHandler.GetAll)
-	router.Get("/{id}", orderItemHandler.GetByID)
 	router.Put("/{id}", orderItemHandler.UpdateByID)
 	router.Delete("/{id}", orderItemHandler.DeleteByID)
 }

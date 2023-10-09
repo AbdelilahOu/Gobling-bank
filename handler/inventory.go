@@ -7,6 +7,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
@@ -75,7 +76,7 @@ func (o *Inventory) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Inventory) DeleteByID(w http.ResponseWriter, r *http.Request) {
-	idParam := r.URL.Query().Get("id")
+	idParam := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
 		fmt.Println(err)
