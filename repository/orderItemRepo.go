@@ -14,7 +14,7 @@ type OrderItemRepo struct {
 }
 
 func (repo *OrderItemRepo) Insert(ctx context.Context, orderItem model.OrderItem) error {
-	_, err := repo.DB.Exec("INSERT INTO order_items (order_id, product_id, quantity, new_price, inventory_id) VALUES ($1, $2, $3, $4, $5)", orderItem.OrderId, orderItem.ProductId, orderItem.Quantity, orderItem.NewPrice, orderItem.InventoryId)
+	_, err := repo.DB.Exec("INSERT INTO order_items (id,order_id, product_id, quantity, new_price, inventory_id) VALUES ($1, $2, $3, $4, $5, $6)", orderItem.Id, orderItem.OrderId, orderItem.ProductId, orderItem.Quantity, orderItem.NewPrice, orderItem.InventoryId)
 	if err != nil {
 		fmt.Println("error inserting orderItem", err)
 		return err
