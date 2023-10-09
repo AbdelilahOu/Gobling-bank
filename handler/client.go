@@ -131,11 +131,16 @@ func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// turn into json
-	if err := json.NewEncoder(w).Encode(c); err != nil {
+	res, err := json.Marshal(c)
+	if err != nil {
 		fmt.Println("failed to marshal:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// ok
+	w.Write(res)
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
