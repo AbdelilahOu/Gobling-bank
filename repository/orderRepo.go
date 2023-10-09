@@ -19,7 +19,7 @@ type GetOAllResult struct {
 }
 
 func (repo *OrderRepo) Insert(ctx context.Context, order model.Order) error {
-	_, err := repo.DB.Exec("INSERT INTO orders (id, client_id, status) VALUES ($1, $2, $3, $4)", order.Id, order.ClientId, order.Status)
+	_, err := repo.DB.Exec("INSERT INTO orders (id, client_id, status) VALUES ($1, $2, $3)", order.Id, order.ClientId, order.Status)
 	if err != nil {
 		fmt.Println("error inserting order", err)
 		return err
@@ -70,7 +70,7 @@ func (repo *OrderRepo) Select(ctx context.Context, id string) (model.Order, erro
 
 func (repo *OrderRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetOAllResult, error) {
 	// get orders
-	rows, err := repo.DB.Query("SELECT * FROM orders WHERE id > $1 LIMIT $2", cursor, size)
+	rows, err := repo.DB.Query("SELECT id, client_id, status, created_at  FROM orders WHERE id > $1 LIMIT $2", cursor, size)
 	if err != nil {
 		fmt.Println("error getting orders", err)
 		return GetOAllResult{}, err
@@ -82,7 +82,7 @@ func (repo *OrderRepo) SelectAll(ctx context.Context, cursor uint64, size uint64
 	for rows.Next() {
 		var c model.Order
 		// scane
-		err := rows.Scan()
+		err := rows.Scan(&c.Id, &c.ClientId, &c.Status, &c.CreatedAt)
 		if err != nil {
 			fmt.Println("error scanning orders", err)
 			return GetOAllResult{}, err
