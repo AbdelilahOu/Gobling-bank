@@ -209,7 +209,7 @@ func (o *Client) DeleteByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	// delete order
+	// delete clinet
 	err := o.Repo.Delete(r.Context(), idParam)
 	// check for errors
 	if err != nil {

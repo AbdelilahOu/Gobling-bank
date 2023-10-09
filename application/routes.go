@@ -34,6 +34,12 @@ func (a *App) loadOrderRoutes(router chi.Router) {
 		Repo: &repository.OrderRepo{
 			DB: a.db,
 		},
+		ItemsRepo: &repository.OrderItemRepo{
+			DB: a.db,
+		},
+		InventoryRepo: &repository.InventoryRepo{
+			DB: a.db,
+		},
 	}
 	// attach routes
 	router.Post("/", orderHandler.Create)

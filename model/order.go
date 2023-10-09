@@ -7,8 +7,8 @@ import (
 )
 
 type Order struct {
-	Id         uuid.UUID
-	Status     string
-	ClientId   uuid.UUID
-	Creatde_at *time.Time
+	Id        uuid.UUID
+	Status    string
+	ClientId  uuid.UUID
+	CreatedAt *time.Time
 }
