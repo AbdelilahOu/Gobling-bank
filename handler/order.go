@@ -158,9 +158,75 @@ func (o *Order) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) GetByID(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	// check if param exist
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// get order
+	result, err := o.Repo.Select(r.Context(), idParam)
+	if err != nil {
+		fmt.Println("couldnt get order", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// marhsal json
+	res, err := json.Marshal(result)
+	if err != nil {
+		fmt.Println("couldnt marshal order", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	w.Write(res)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Order) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	// body struct
+	var body struct {
+		Status string `json:"status"`
+	}
+	// populat nody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// get params
+	idParam := chi.URLParam(r, "id")
+	// check if param exist
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// check if client exists
+	// get client
+	order, err := o.Repo.Select(r.Context(), idParam)
+	// check for erros
+	if err != nil {
+		fmt.Println("error fetching order", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// update order
+	err = o.Repo.Update(r.Context(), model.Order{Status: body.Status}, idParam)
+	if err != nil {
+		fmt.Println("error updating order", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	//
+	order.Status = body.Status
+	res, err := json.Marshal(order)
+	if err != nil {
+		fmt.Println("error marshalling order", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	w.Write(res)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Order) DeleteByID(w http.ResponseWriter, r *http.Request) {
