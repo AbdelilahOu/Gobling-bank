@@ -84,7 +84,6 @@ func (a *App) LoadInventoryRoutes(router chi.Router) {
 		},
 	}
 	router.Post("/", inventoryHandler.Create)
-	router.Get("/", inventoryHandler.GetAll)
 	router.Put("/{id}", inventoryHandler.UpdateByID)
 	router.Delete("/{id}", inventoryHandler.DeleteByID)
 }

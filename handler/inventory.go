@@ -69,9 +69,6 @@ func (o *Inventory) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (o *Inventory) GetAll(w http.ResponseWriter, r *http.Request) {
-}
-
 func (o *Inventory) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
