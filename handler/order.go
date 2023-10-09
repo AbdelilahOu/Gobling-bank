@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/AbdelilahOu/GoThingy/model"
@@ -113,6 +114,47 @@ func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Order) GetAll(w http.ResponseWriter, r *http.Request) {
+	// pagination
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	// check
+	if limitStr == "" {
+		limitStr = "10"
+	}
+	// inisialise pageStr if not provided
+	if pageStr == "" {
+		pageStr = "0"
+	}
+	//convert page into int
+	const decimal = 10
+	const bitSize = 64
+	page, err := strconv.ParseUint(pageStr, decimal, bitSize)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	size, err := strconv.ParseUint(limitStr, decimal, bitSize)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	//
+	result, err := o.Repo.SelectAll(r.Context(), page, size)
+	if err != nil {
+		fmt.Println("coudnt get orders", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	//
+	res, err := json.Marshal(result)
+	if err != nil {
+		fmt.Println("couldnt marshal orders", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// ok
+	w.Write(res)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Order) GetByID(w http.ResponseWriter, r *http.Request) {
