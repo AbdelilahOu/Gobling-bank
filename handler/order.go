@@ -186,7 +186,14 @@ func (o *Order) GetByID(w http.ResponseWriter, r *http.Request) {
 func (o *Order) UpdateByID(w http.ResponseWriter, r *http.Request) {
 	// body struct
 	var body struct {
-		Status string `json:"status"`
+		Status    string `json:"status"`
+		OrderItem []struct {
+			Id          string  `json:"id,omitempty"`
+			Quantity    int     `json:"quantity"`
+			ProductId   string  `json:"product_id"`
+			NewPrice    float64 `json:"new_price"`
+			InventoryId string  `json:"inventory_id,omitempty"`
+		}
 	}
 	// populat nody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -215,6 +222,70 @@ func (o *Order) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error updating order", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	// update order items
+	for _, item := range body.OrderItem {
+		if item.Id == "" {
+			inventoryId, err := uuid.NewUUID()
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			//
+			parsedProductId, err := uuid.Parse(item.ProductId)
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			//
+			inventoryId, err = o.InventoryRepo.Insert(r.Context(), model.InventoryMvm{
+				Id:        inventoryId,
+				Quantity:  item.Quantity,
+				ProductId: parsedProductId,
+			})
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			//
+			orderItemId, err := uuid.NewUUID()
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			parsedOrderId, err := uuid.Parse(idParam)
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			//
+			o.ItemsRepo.Insert(r.Context(), model.OrderItem{
+				Id:          orderItemId,
+				OrderId:     parsedOrderId,
+				ProductId:   parsedProductId,
+				NewPrice:    item.NewPrice,
+				Quantity:    item.Quantity,
+				InventoryId: inventoryId,
+			})
+		} else {
+			err := o.InventoryRepo.Update(r.Context(), model.InventoryMvm{Quantity: item.Quantity}, item.InventoryId)
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			err = o.ItemsRepo.Update(r.Context(), model.OrderItem{Quantity: item.Quantity, NewPrice: item.NewPrice}, item.Id)
+			if err != nil {
+				fmt.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 	//
 	order.Status = body.Status
