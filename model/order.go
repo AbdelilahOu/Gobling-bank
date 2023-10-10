@@ -5,8 +5,8 @@ import (
 )
 
 type Order struct {
-	Id        uuid.UUID `sql:"id"`
-	Status    string    `sql:"status"`
-	ClientId  uuid.UUID `sql:"client_id"`
-	CreatedAt string    `sql:"created_at"`
+	Id        uuid.UUID `db:"id"`
+	Status    string    `db:"status"`
+	ClientId  uuid.UUID `db:"client_id"`
+	CreatedAt string    `db:"created_at"`
 }

@@ -5,10 +5,10 @@ import (
 )
 
 type Product struct {
-	Id          uuid.UUID `sql:"id"`
-	Name        string    `sql:"name"`
-	Description string    `sql:"description"`
-	Price       float64   `sql:"price"`
-	Tva         float64   `sql:"tva"`
-	CreatedAt   string    `sql:"created_at"`
+	Id          uuid.UUID `db:"id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	Price       float64   `db:"price"`
+	Tva         float64   `db:"tva"`
+	CreatedAt   string    `db:"created_at"`
 }
