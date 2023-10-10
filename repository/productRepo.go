@@ -49,12 +49,9 @@ func (repo *ProductRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, error) {
 	// execute
-	row := repo.DB.QueryRow("SELECT * FROM products WHERE id = $1", id)
-	// var
-	var p model.Product
-	// get product
-	err := row.Scan(&p.Id, &p.Name, &p.Description, &p.Price, &p.Tva)
-	// check for err
+	var product model.Product
+	err := repo.DB.Select(&product, "SELECT * FROM products WHERE id = $1", id)
+	//
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
 		return model.Product{}, errorMessages.RecordDoesntExist
@@ -66,36 +63,16 @@ func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, 
 		return model.Product{}, err
 	}
 	//
-	return p, nil
+	return product, nil
 }
 
 func (repo *ProductRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetPAllResult, error) {
 	// get products
-	rows, err := repo.DB.Query("SELECT * FROM products WHERE id > $1 LIMIT $2", cursor, size)
+	var products []model.Product
+	err := repo.DB.Select(products, "SELECT * FROM products WHERE id > $1 LIMIT $2", cursor, size)
 	if err != nil {
 		fmt.Println("error getting products", err)
 		return GetPAllResult{}, err
-	}
-	// close rows after
-	defer rows.Close()
-	// get products as model.product
-	var products []model.Product
-	for rows.Next() {
-		var c model.Product
-		// scane
-		err := rows.Scan(&c.Id, &c.Name)
-		if err != nil {
-			fmt.Println("error scanning products", err)
-			return GetPAllResult{}, err
-		}
-		//
-		products = append(products, c)
-
-	}
-	// error while eterating
-	err = rows.Err()
-	if err != nil {
-		fmt.Println("error eterating over rows")
 	}
 	// last result
 	return GetPAllResult{

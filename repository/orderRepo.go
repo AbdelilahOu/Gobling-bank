@@ -49,12 +49,9 @@ func (repo *OrderRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *OrderRepo) Select(ctx context.Context, id string) (model.Order, error) {
 	// execute
-	row := repo.DB.QueryRow("SELECT * FROM orders WHERE id = $1", id)
+	var order model.Order
+	err := repo.DB.Select(&order, "SELECT * FROM orders WHERE id = $1", id)
 	// var
-	var c model.Order
-	// get order
-	err := row.Scan()
-	// check for err
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
 		return model.Order{}, errorMessages.RecordDoesntExist
@@ -66,38 +63,18 @@ func (repo *OrderRepo) Select(ctx context.Context, id string) (model.Order, erro
 		return model.Order{}, err
 	}
 	//
-	return c, nil
+	return order, nil
 }
 
 func (repo *OrderRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetOAllResult, error) {
 	// get orders
-	rows, err := repo.DB.Query("SELECT id, client_id, status, created_at  FROM orders WHERE id > $1 LIMIT $2", cursor, size)
+	var orders []model.Order
+	err := repo.DB.Select(&orders, "SELECT id, client_id, status, created_at  FROM orders WHERE id > $1 LIMIT $2", cursor, size)
 	if err != nil {
 		fmt.Println("error getting orders", err)
 		return GetOAllResult{}, err
 	}
-	// close rows after
-	defer rows.Close()
-	// get orders as model.Order
-	var orders []model.Order
-	for rows.Next() {
-		var c model.Order
-		// scane
-		err := rows.Scan(&c.Id, &c.ClientId, &c.Status, &c.CreatedAt)
-		if err != nil {
-			fmt.Println("error scanning orders", err)
-			return GetOAllResult{}, err
-		}
-		//
-		orders = append(orders, c)
-
-	}
-	// error while eterating
-	err = rows.Err()
-	if err != nil {
-		fmt.Println("error eterating over rows")
-	}
-	// last result
+	// ok
 	return GetOAllResult{
 		Orders: orders,
 	}, nil

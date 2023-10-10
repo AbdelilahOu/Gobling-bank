@@ -44,11 +44,8 @@ func (repo *OrderItemRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *OrderItemRepo) Select(ctx context.Context, id string) (model.OrderItem, error) {
 	// execute
-	row := repo.DB.QueryRow("SELECT * FROM order_items WHERE id = $1", id)
-	// var
-	var c model.OrderItem
-	// get orderItem
-	err := row.Scan()
+	var orderItem model.OrderItem
+	err := repo.DB.Select(&orderItem, "SELECT * FROM order_items WHERE id = $1", id)
 	// check for err
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
@@ -61,5 +58,5 @@ func (repo *OrderItemRepo) Select(ctx context.Context, id string) (model.OrderIt
 		return model.OrderItem{}, err
 	}
 	//
-	return c, nil
+	return orderItem, nil
 }
