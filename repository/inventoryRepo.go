@@ -50,12 +50,9 @@ func (repo *InventoryRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *InventoryRepo) Select(ctx context.Context, id string) (model.InventoryMvm, error) {
 	// execute
-	row := repo.DB.QueryRow("SELECT * FROM inventory_mouvements WHERE id = $1", id)
+	var inventory model.InventoryMvm
+	err := repo.DB.Select(inventory, "SELECT * FROM inventory_mouvements WHERE id = $1", id)
 	// var
-	var c model.InventoryMvm
-	// get inventory
-	err := row.Scan()
-	// check for err
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
 		return model.InventoryMvm{}, errorMessages.RecordDoesntExist
@@ -67,39 +64,19 @@ func (repo *InventoryRepo) Select(ctx context.Context, id string) (model.Invento
 		return model.InventoryMvm{}, err
 	}
 	//
-	return c, nil
+	return inventory, nil
 }
 
 func (repo *InventoryRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetIAllResult, error) {
 	// get inventory_mouvements
-	rows, err := repo.DB.Query("SELECT * FROM inventory_mouvements WHERE id > $1 LIMIT $2", cursor, size)
+	var inventories []model.InventoryMvm
+	err := repo.DB.Select(&inventories, "SELECT * FROM inventory_mouvements WHERE id > $1 LIMIT $2", cursor, size)
 	if err != nil {
 		fmt.Println("error getting inventory_mouvements", err)
 		return GetIAllResult{}, err
 	}
-	// close rows after
-	defer rows.Close()
-	// get inventory_mouvements as model.InventoryMvm
-	var Inventory []model.InventoryMvm
-	for rows.Next() {
-		var c model.InventoryMvm
-		// scane
-		err := rows.Scan()
-		if err != nil {
-			fmt.Println("error scanning Inventory", err)
-			return GetIAllResult{}, err
-		}
-		//
-		Inventory = append(Inventory, c)
-
-	}
-	// error while eterating
-	err = rows.Err()
-	if err != nil {
-		fmt.Println("error eterating over rows")
-	}
 	// last result
 	return GetIAllResult{
-		Inventory: Inventory,
+		Inventory: inventories,
 	}, nil
 }
