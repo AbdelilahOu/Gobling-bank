@@ -7,10 +7,11 @@ import (
 
 	errorMessages "github.com/AbdelilahOu/GoThingy/constants"
 	"github.com/AbdelilahOu/GoThingy/model"
+	"github.com/jmoiron/sqlx"
 )
 
 type OrderItemRepo struct {
-	DB *sql.DB
+	DB *sqlx.DB
 }
 
 func (repo *OrderItemRepo) Insert(ctx context.Context, orderItem model.OrderItem) error {

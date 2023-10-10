@@ -46,7 +46,7 @@ func (o *Product) Create(w http.ResponseWriter, r *http.Request) {
 		Price:       body.Price,
 		Description: body.Description,
 		Tva:         body.Tva,
-		CreatedAt:   &now,
+		CreatedAt:   now.String(),
 	}
 	// add to db
 	err = o.Repo.Insert(r.Context(), product)

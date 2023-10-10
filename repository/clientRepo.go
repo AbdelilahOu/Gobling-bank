@@ -7,10 +7,11 @@ import (
 
 	errorMessages "github.com/AbdelilahOu/GoThingy/constants"
 	"github.com/AbdelilahOu/GoThingy/model"
+	"github.com/jmoiron/sqlx"
 )
 
 type ClientRepo struct {
-	DB *sql.DB
+	DB *sqlx.DB
 }
 
 type GetCAllResult struct {
@@ -50,13 +51,10 @@ func (repo *ClientRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, error) {
-	SelectQuery := "SELECT firstname, lastname, email, phone, created_at, adress  FROM clients WHERE id = $1"
+	SelectQuery := "SELECT firstname, lastname, email, phone, created_at, address  FROM clients WHERE id = $1"
 	// execute
-	row := repo.DB.QueryRow(SelectQuery, id)
-	// var
 	var c model.Client
-	// get client
-	err := row.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone, &c.CreatedAt, &c.Adress)
+	err := repo.DB.Select(&c, SelectQuery, id)
 	// check for err
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
@@ -75,31 +73,11 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetCAllResult, error) {
 	SelectAllQuery := "SELECT * FROM clients WHERE id > $1 LIMIT $2"
 	// get clients
-	rows, err := repo.DB.Query(SelectAllQuery, cursor, size)
+	var clients []model.Client
+	err := repo.DB.Select(&clients, SelectAllQuery, cursor, size)
 	if err != nil {
 		fmt.Println("error getting clients", err)
 		return GetCAllResult{}, err
-	}
-	// close rows after
-	defer rows.Close()
-	// get clients as model.client
-	var clients []model.Client
-	for rows.Next() {
-		var c model.Client
-		// scane
-		err := rows.Scan(&c.Id, &c.Firstname, &c.Lastname, &c.Email, &c.Phone)
-		if err != nil {
-			fmt.Println("error scanning clients", err)
-			return GetCAllResult{}, err
-		}
-		//
-		clients = append(clients, c)
-
-	}
-	// error while eterating
-	err = rows.Err()
-	if err != nil {
-		fmt.Println("error eterating over rows")
 	}
 	// last result
 	return GetCAllResult{

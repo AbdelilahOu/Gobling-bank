@@ -58,7 +58,7 @@ func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
 		Id:        orderId,
 		Status:    body.Status,
 		ClientId:  parsedClientId,
-		CreatedAt: &now,
+		CreatedAt: now.String(),
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -84,7 +84,7 @@ func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
 		inventoryId, err = o.InventoryRepo.Insert(r.Context(), model.InventoryMvm{
 			Id:        inventoryId,
 			Quantity:  item.Quantity,
-			CreatedAt: &now,
+			CreatedAt: now.String(),
 			ProductId: parsedProductId,
 		})
 		if err != nil {

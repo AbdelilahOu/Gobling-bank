@@ -1,14 +1,12 @@
 package model
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 )
 
 type InventoryMvm struct {
-	Id        uuid.UUID
-	Quantity  int
-	CreatedAt *time.Time
-	ProductId uuid.UUID
+	Id        uuid.UUID `sql:"id"`
+	Quantity  int       `sql:"quantity"`
+	CreatedAt string    `sql:"created_at"`
+	ProductId uuid.UUID `sql:"product_id"`
 }

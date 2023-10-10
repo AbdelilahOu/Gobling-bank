@@ -1,1 +1,2 @@
-DROP TABLE IF EXISTS inventory_mouvements;
+
+DROP TABLE IF EXISTS order_items;

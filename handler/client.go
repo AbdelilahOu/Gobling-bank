@@ -47,7 +47,7 @@ func (o *Client) Create(w http.ResponseWriter, r *http.Request) {
 		Lastname:  body.Lastname,
 		Phone:     body.Phone,
 		Email:     body.Email,
-		CreatedAt: &now,
+		CreatedAt: now.String(),
 	}
 	// insert into db
 	err = o.Repo.Insert(r.Context(), client)
@@ -150,7 +150,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		Lastname  string `json:"lastname"`
 		Phone     string `json:"phone"`
 		Email     string `json:"email"`
-		Adress    string `json:"adress"`
+		Address   string `json:"address"`
 	}
 	// populat nody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -180,7 +180,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		Lastname:  body.Lastname,
 		Phone:     body.Phone,
 		Email:     body.Email,
-		Adress:    body.Adress,
+		Address:   body.Address,
 	}, idParam)
 	// check for errors
 	if err != nil {
@@ -195,7 +195,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		Lastname:  body.Lastname,
 		Phone:     body.Phone,
 		Email:     body.Email,
-		Adress:    body.Adress,
+		Address:   body.Address,
 	})
 	if err != nil {
 		fmt.Println("failed to marshal:", err)

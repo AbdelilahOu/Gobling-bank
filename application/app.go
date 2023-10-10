@@ -2,20 +2,20 @@ package application
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 type App struct {
 	router http.Handler
-	db     *sql.DB
+	db     *sqlx.DB
 }
 
 const (
@@ -39,7 +39,7 @@ func New() *App {
 		host, port, user, password, dbname)
 
 	// Connect to the database
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := sqlx.Open("postgres", psqlInfo)
 	if err != nil {
 		fmt.Println("Error connecting to the database:", err)
 	}
@@ -81,9 +81,9 @@ func (a *App) Start(ctx context.Context) error {
 	return nil
 }
 
-func runDBMigrations(db *sql.DB) error {
+func runDBMigrations(db *sqlx.DB) error {
 	// Run migrations
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 	if err != nil {
 		return err
 	}

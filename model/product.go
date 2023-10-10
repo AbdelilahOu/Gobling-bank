@@ -1,16 +1,14 @@
 package model
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 )
 
 type Product struct {
-	Id          uuid.UUID
-	Name        string
-	Description string
-	Price       float64
-	Tva         float64
-	CreatedAt   *time.Time
+	Id          uuid.UUID `sql:"id"`
+	Name        string    `sql:"name"`
+	Description string    `sql:"description"`
+	Price       float64   `sql:"price"`
+	Tva         float64   `sql:"tva"`
+	CreatedAt   string    `sql:"created_at"`
 }
