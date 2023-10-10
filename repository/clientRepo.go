@@ -53,8 +53,8 @@ func (repo *ClientRepo) Delete(ctx context.Context, id string) error {
 func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, error) {
 	SelectQuery := "SELECT firstname, lastname, email, phone, created_at, address  FROM clients WHERE id = $1"
 	// execute
-	var c model.Client
-	err := repo.DB.Select(&c, SelectQuery, id)
+	var client model.Client
+	err := repo.DB.Select(&client, SelectQuery, id)
 	// check for err
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
@@ -67,7 +67,7 @@ func (repo *ClientRepo) Select(ctx context.Context, id string) (model.Client, er
 		return model.Client{}, err
 	}
 	//
-	return c, nil
+	return client, nil
 }
 
 func (repo *ClientRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetCAllResult, error) {
