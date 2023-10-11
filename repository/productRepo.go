@@ -20,7 +20,8 @@ type GetPAllResult struct {
 }
 
 func (repo *ProductRepo) Insert(ctx context.Context, product model.Product) error {
-	_, err := repo.DB.Exec("INSERT INTO products (id, name, description, price, tva) VALUES ($1, $2, $3, $4, $5)", product.Id, product.Name, product.Description, product.Price, product.Tva)
+	InsertQuery := "INSERT INTO products (id, name, description, price, tva) VALUES ($1, $2, $3, $4, $5)"
+	_, err := repo.DB.Exec(InsertQuery, product.Id, product.Name, product.Description, product.Price, product.Tva)
 	if err != nil {
 		fmt.Println("error inserting product", err)
 		return err
@@ -29,7 +30,8 @@ func (repo *ProductRepo) Insert(ctx context.Context, product model.Product) erro
 }
 
 func (repo *ProductRepo) Update(ctx context.Context, product model.Product, id string) error {
-	_, err := repo.DB.Exec("UPDATE products SET name = $1, description = $2, price = $3, tva = $4 WHERE id = $5", product.Name, product.Description, product.Price, product.Tva, id)
+	UpdateQuery := "UPDATE products SET name = $1, description = $2, price = $3, tva = $4 WHERE id = $5"
+	_, err := repo.DB.Exec(UpdateQuery, product.Name, product.Description, product.Price, product.Tva, id)
 	// check for error
 	if err != nil {
 		fmt.Println("error updating product :", err)
@@ -39,7 +41,8 @@ func (repo *ProductRepo) Update(ctx context.Context, product model.Product, id s
 }
 
 func (repo *ProductRepo) Delete(ctx context.Context, id string) error {
-	_, err := repo.DB.Exec("DELETE FROM products WHERE id = $1", id)
+	DeleteQuery := "DELETE FROM products WHERE id = $1"
+	_, err := repo.DB.Exec(DeleteQuery, id)
 	if err != nil {
 		fmt.Println("error deleting product", err)
 		return err
@@ -49,8 +52,9 @@ func (repo *ProductRepo) Delete(ctx context.Context, id string) error {
 
 func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, error) {
 	// execute
+	SelectQuery := "SELECT * FROM products WHERE id = $1"
 	var product model.Product
-	err := repo.DB.Select(&product, "SELECT * FROM products WHERE id = $1", id)
+	err := repo.DB.Select(&product, SelectQuery, id)
 	//
 	if err == sql.ErrNoRows {
 		fmt.Println("no redcord exisist", err)
@@ -68,8 +72,9 @@ func (repo *ProductRepo) Select(ctx context.Context, id string) (model.Product, 
 
 func (repo *ProductRepo) SelectAll(ctx context.Context, cursor uint64, size uint64) (GetPAllResult, error) {
 	// get products
+	SelectAllQuery := "SELECT * FROM products WHERE id > $1 LIMIT $2"
 	var products []model.Product
-	err := repo.DB.Select(products, "SELECT * FROM products WHERE id > $1 LIMIT $2", cursor, size)
+	err := repo.DB.Select(products, SelectAllQuery, cursor, size)
 	if err != nil {
 		fmt.Println("error getting products", err)
 		return GetPAllResult{}, err
