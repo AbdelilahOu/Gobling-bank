@@ -22,6 +22,7 @@ type GetCAllResult struct {
 func (repo *ClientRepo) Insert(ctx context.Context, client model.Client) error {
 	InsertQuery := "INSERT INTO clients (id, firstname, lastname, email, phone) VALUES ($1, $2, $3, $4, $5)"
 	_, err := repo.DB.Exec(InsertQuery, client.Id, client.Firstname, client.Lastname, client.Email, client.Phone)
+
 	if err != nil {
 		fmt.Println("error inserting client", err)
 		return err
