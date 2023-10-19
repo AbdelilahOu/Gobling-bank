@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -43,18 +44,10 @@ func New() *App {
 	if err != nil {
 		fmt.Println("Error connecting to the database:", err)
 	}
-	// defer db.Close()
-
-	// Ping the database
-	err = db.Ping()
-	if err != nil {
-		fmt.Println("Error pinging the database:", err)
-	}
-
+	//
 	app := &App{
 		db: db,
 	}
-
 	// Load routes
 	app.loadRoutes()
 	return app
@@ -66,19 +59,42 @@ func (a *App) Start(ctx context.Context) error {
 		Addr:    ":3000",
 		Handler: a.router,
 	}
-
-	err := runDBMigrations(a.db)
+	// Ping the database
+	err := a.db.Ping()
+	if err != nil {
+		fmt.Println("Error pinging the database:", err)
+	}
+	// run migrations
+	err = runDBMigrations(a.db)
 	if err != nil {
 		fmt.Println("Error running migrations:", err)
 	}
-	// Handle server errors
-	err = server.ListenAndServe()
-	if err != nil {
-		fmt.Printf("Error starting the server: %v\n", err)
-		return err
-	}
+	// close db on gracefull shudown
+	defer func() {
+		if err := a.db.Close(); err != nil {
+			fmt.Println("Error closing database:", err)
+		}
+	}()
+	// make channel to recieve events from go routine
+	ch := make(chan error, 1)
+	// gracefullshutdown
+	go func() {
+		err := server.ListenAndServe()
+		// Handle server errors
+		if err != nil {
+			ch <- fmt.Errorf("error starting the server: %v", err)
+		}
+		close(ch)
+	}()
 
-	return nil
+	select {
+	case err = <-ch:
+		return err
+	case <-ctx.Done():
+		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+		return server.Shutdown(timeout)
+	}
 }
 
 func runDBMigrations(db *sqlx.DB) error {
