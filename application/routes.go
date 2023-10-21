@@ -5,6 +5,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/handler"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -16,6 +17,7 @@ func (a *App) loadRoutes() {
 	router.Use(middleware.Logger)
 	// basinc route
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		utils.EnableCors(&w)
 		w.WriteHeader(http.StatusOK)
 	})
 	// sub routes

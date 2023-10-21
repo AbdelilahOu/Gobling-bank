@@ -7,6 +7,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -16,6 +17,7 @@ type OrderItem struct {
 }
 
 func (o *OrderItem) Create(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// bosy struct
 	var body struct {
 		ProductId   string  `json:"product_id"`
@@ -86,6 +88,7 @@ func (o *OrderItem) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *OrderItem) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	id := chi.URLParam(r, "id")
 	// bosy struct
 	var body struct {
@@ -132,6 +135,7 @@ func (o *OrderItem) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *OrderItem) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// get params
 	idParam := chi.URLParam(r, "id")
 	// check if param exist

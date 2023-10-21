@@ -9,6 +9,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -18,6 +19,7 @@ type Client struct {
 }
 
 func (o *Client) Create(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// expected body struct
 	var body struct {
 		Firstname string `json:"firstname"`
@@ -71,6 +73,7 @@ func (o *Client) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Client) GetAll(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// pagination
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
@@ -115,6 +118,7 @@ func (o *Client) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// get id param
 	idParam := chi.URLParam(r, "id")
 	// check if param exist
@@ -144,6 +148,7 @@ func (o *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// body struct
 	var body struct {
 		Firstname string `json:"firstname"`
@@ -207,6 +212,7 @@ func (o *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Client) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// get params
 	idParam := chi.URLParam(r, "id")
 	// check if param exist

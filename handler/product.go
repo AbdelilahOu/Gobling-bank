@@ -9,6 +9,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -18,6 +19,7 @@ type Product struct {
 }
 
 func (o *Product) Create(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// bosy struct
 	var body struct {
 		Name        string  `json:"name"`
@@ -69,6 +71,7 @@ func (o *Product) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) GetAll(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// pagination
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
@@ -114,6 +117,7 @@ func (o *Product) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) GetByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	id := chi.URLParam(r, "id")
 	// check for id
 	if id == "" {
@@ -139,6 +143,7 @@ func (o *Product) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) UpdateByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// body struct
 	var body struct {
 		Name        string  `json:"name"`
@@ -200,6 +205,7 @@ func (o *Product) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Product) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// get params
 	idParam := chi.URLParam(r, "id")
 	// check if param exist

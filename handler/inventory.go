@@ -7,6 +7,7 @@ import (
 
 	"github.com/AbdelilahOu/GoThingy/model"
 	"github.com/AbdelilahOu/GoThingy/repository"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -16,6 +17,7 @@ type Inventory struct {
 }
 
 func (o *Inventory) Create(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	// body struct
 	var body struct {
 		Quantity  int    `json:"quantity"`
@@ -70,6 +72,7 @@ func (o *Inventory) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Inventory) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	utils.EnableCors(&w)
 	idParam := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
