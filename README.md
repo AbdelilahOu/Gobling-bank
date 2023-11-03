@@ -22,7 +22,7 @@ We use PostgreSQL as the database for this project. You can set up a PostgreSQL 
 
 3. **Check if your container is running**:
 
-Run the following command and look for your container name in the list:
+    Run the following command and look for your container name in the list:
 
     ```bash
     dcoker ps
