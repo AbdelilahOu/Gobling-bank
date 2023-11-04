@@ -31,7 +31,9 @@ respawn:
 	timeout 3
 	make createdb
 	make migrationup
+	timeout 2
 	make sqlc
+	timeout 2
 	make test
 
 .PHONY: postgres createdb dropdb migrationup migrationdown sqlc test respawn
