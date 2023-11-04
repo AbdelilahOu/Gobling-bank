@@ -14,7 +14,7 @@ type Config struct {
 	Db DbConfig
 }
 
-func LoadConfig() *Config {
+func LoadDbConfig() DbConfig {
 	var dbCfg DbConfig
 
 	if password, exists := os.LookupEnv("POSTGRES_PASSWORD"); exists {
@@ -37,6 +37,11 @@ func LoadConfig() *Config {
 
 	dbCfg.Post = 5432
 
+	return dbCfg
+}
+
+func LoadConfig() *Config {
+	dbCfg := LoadDbConfig()
 	return &Config{
 		Db: dbCfg,
 	}
