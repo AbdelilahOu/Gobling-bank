@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createTransfer = `-- name: CreateTransfer :one
@@ -20,9 +22,9 @@ insert into transfers (
 `
 
 type CreateTransferParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	ToAccountID   int64 `json:"to_account_id"`
-	Amount        int64 `json:"amount"`
+	FromAccountID uuid.UUID `json:"from_account_id"`
+	ToAccountID   uuid.UUID `json:"to_account_id"`
+	Amount        int64     `json:"amount"`
 }
 
 func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error) {
@@ -43,7 +45,7 @@ DELETE FROM transfers
 WHERE id = $1
 `
 
-func (q *Queries) DeleteTransfer(ctx context.Context, id int64) error {
+func (q *Queries) DeleteTransfer(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteTransfer, id)
 	return err
 }
@@ -53,7 +55,7 @@ SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
+func (q *Queries) GetTransfer(ctx context.Context, id uuid.UUID) (Transfer, error) {
 	row := q.db.QueryRowContext(ctx, getTransfer, id)
 	var i Transfer
 	err := row.Scan(
@@ -115,8 +117,8 @@ RETURNING id, from_account_id, to_account_id, amount, created_at
 `
 
 type UpdateTransferParams struct {
-	ID     int64 `json:"id"`
-	Amount int64 `json:"amount"`
+	ID     uuid.UUID `json:"id"`
+	Amount int64     `json:"amount"`
 }
 
 func (q *Queries) UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error) {

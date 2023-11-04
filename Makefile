@@ -21,4 +21,11 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: postgres createdb dropdb migrationup migrationdown sqlc test
+respawn:
+	make dropdb
+	make createdb
+	make migrationup
+	make sqlc
+	make test
+
+.PHONY: postgres createdb dropdb migrationup migrationdown sqlc test respawn

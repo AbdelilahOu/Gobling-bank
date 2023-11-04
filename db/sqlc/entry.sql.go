@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createEntry = `-- name: CreateEntry :one
@@ -19,8 +21,8 @@ insert into entries (
 `
 
 type CreateEntryParams struct {
-	AccountID int64 `json:"account_id"`
-	Amount    int64 `json:"amount"`
+	AccountID uuid.UUID `json:"account_id"`
+	Amount    int64     `json:"amount"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
@@ -40,7 +42,7 @@ DELETE FROM entries
 WHERE id = $1
 `
 
-func (q *Queries) DeleteEntry(ctx context.Context, id int64) error {
+func (q *Queries) DeleteEntry(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteEntry, id)
 	return err
 }
@@ -50,7 +52,7 @@ SELECT id, account_id, amount, created_at FROM entries
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetEntry(ctx context.Context, id int64) (Entry, error) {
+func (q *Queries) GetEntry(ctx context.Context, id uuid.UUID) (Entry, error) {
 	row := q.db.QueryRowContext(ctx, getEntry, id)
 	var i Entry
 	err := row.Scan(
@@ -110,8 +112,8 @@ RETURNING id, account_id, amount, created_at
 `
 
 type UpdateEntryParams struct {
-	ID     int64 `json:"id"`
-	Amount int64 `json:"amount"`
+	ID     uuid.UUID `json:"id"`
+	Amount int64     `json:"amount"`
 }
 
 func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error) {
