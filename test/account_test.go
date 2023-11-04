@@ -47,3 +47,30 @@ func TestGetAccount(t *testing.T) {
 	require.Equal(t, account1.Currency, account2.Currency)
 	require.Equal(t, account1.CreatedAt, account2.CreatedAt)
 }
+
+func TestUpdateAccount(t *testing.T) {
+	account := GenerateRandomAccount(t)
+	arg := db.UpdateAccountParams{
+		ID:      account.ID,
+		Balance: utils.RandomAmount(),
+	}
+	updatedAcc, err := testQueries.UpdateAccount(context.Background(), arg)
+	// check errors
+	require.NoError(t, err)
+	require.NotEmpty(t, updatedAcc)
+	// check returned feilds
+	require.Equal(t, account.ID, updatedAcc.ID)
+	require.Equal(t, account.Owner, updatedAcc.Owner)
+	require.Equal(t, arg.Balance, updatedAcc.Balance)
+	require.Equal(t, account.Currency, updatedAcc.Currency)
+	require.Equal(t, account.CreatedAt, updatedAcc.CreatedAt)
+}
+
+func TestDeleteAccount(t *testing.T) {
+	account := GenerateRandomAccount(t)
+	err := testQueries.DeleteAccount(context.Background(), account.ID)
+	require.NoError(t, err)
+	account2, err := testQueries.GetAccount(context.Background(), account.ID)
+	require.Error(t, err)
+	require.Empty(t, account2)
+}
