@@ -1,3 +1,5 @@
+CURRENT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
 postgres:
 	docker run --name postgres-database-dev -e POSTGRES_USER=root -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres:15
 
@@ -13,7 +15,10 @@ migrationup:
 migrationdown:
 	migrate -path db/migration -database "postgres://root:mysecretpassword@localhost:5432/simple_bank?sslmode=disable" --verbose down
 
-generategofunc: 
-	docker run --rm -v "%cd%:/src" -w /src sqlc/sqlc generate
+sqlc: 
+	docker run --rm -v ${CURRENT_DIR}:/src -w /src sqlc/sqlc generate
 
-.PHONY: postgres createdb dropdb migrationup migrationdown
+test:
+	go test -v -cover ./...
+
+.PHONY: postgres createdb dropdb migrationup migrationdown sqlc test
