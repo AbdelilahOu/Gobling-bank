@@ -1,5 +1,5 @@
 CREATE TABLE accounts (
-    id bigserial PRIMARY KEY,
+    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     owner varchar NOT NULL,
     balance bigint NOT NULL,
     currency varchar NOT NULL,
@@ -7,16 +7,16 @@ CREATE TABLE accounts (
 );
 
 CREATE TABLE entries (
-    id bigserial PRIMARY KEY,
-    account_id bigint NOT NULL,
+    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    account_id uuid NOT NULL,
     amount bigint NOT NULL,
     created_at timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE transfers (
-    id bigserial PRIMARY KEY,
-    from_account_id bigint NOT NULL,
-    to_account_id bigint NOT NULL,
+    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    from_account_id uuid NOT NULL,
+    to_account_id uuid NOT NULL,
     amount bigint NOT NULL,
     created_at timestamptz NOT NULL DEFAULT (now())
 );
