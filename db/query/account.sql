@@ -7,7 +7,7 @@ insert into accounts (
   $1, $2, $3
 ) RETURNING *;
 
--- name: GetAcount :one
+-- name: GetAccount :one
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
