@@ -92,21 +92,27 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		}
 		// update balence
 		if arg.FromAccountID.Time() < arg.ToAccountID.Time() {
-			moveMoney(ctx, q, AddAccountBalanceParams{
+			result.FromAccount, result.ToAccount, err = moveMoney(ctx, q, AddAccountBalanceParams{
 				ID:     arg.FromAccountID,
 				Amount: -arg.Amount,
 			}, AddAccountBalanceParams{
 				ID:     arg.ToAccountID,
 				Amount: arg.Amount,
 			})
+			if err != nil {
+				return err
+			}
 		} else {
-			moveMoney(ctx, q, AddAccountBalanceParams{
+			result.ToAccount, result.FromAccount, err = moveMoney(ctx, q, AddAccountBalanceParams{
 				ID:     arg.ToAccountID,
 				Amount: arg.Amount,
 			}, AddAccountBalanceParams{
 				ID:     arg.FromAccountID,
 				Amount: -arg.Amount,
 			})
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})

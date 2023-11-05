@@ -74,6 +74,7 @@ func TestTransfer(t *testing.T) {
 		require.NoError(t, err)
 		// check accounts
 		fromAccount := result.FromAccount
+		fmt.Println("should not be empty:", fromAccount)
 		require.NotEmpty(t, fromAccount)
 		require.Equal(t, fromAccount.ID, account1.ID)
 
