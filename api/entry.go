@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
@@ -10,7 +11,7 @@ import (
 )
 
 type createEntryRequest struct {
-	AccountID uuid.UUID `json:"account_id" binding:"required,uuid"`
+	AccountID uuid.UUID `json:"entry_id" binding:"required,uuid"`
 	Amount    int64     `json:"amount" binding:"required"`
 }
 
@@ -78,4 +79,39 @@ func (server *Server) listEntries(ctx *gin.Context) {
 	}
 	// return res
 	ctx.JSON(http.StatusOK, entries)
+}
+
+type updateEntryRequest struct {
+	ID     uuid.UUID `uri:"id" binding:"required,uuid"`
+	Amount int64     `json:"balance" binding:"required"`
+}
+
+func (server *Server) updateEntry(ctx *gin.Context) {
+	var req updateEntryRequest
+	// validate the request
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	// get entry
+	entry, err := server.store.GetEntry(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// update entry
+	entry, err = server.store.UpdateEntry(ctx, db.UpdateEntryParams{
+		ID:     entry.ID,
+		Amount: req.Amount,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// return res
+	ctx.JSON(http.StatusOK, entry)
 }
