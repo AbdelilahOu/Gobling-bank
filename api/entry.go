@@ -54,3 +54,28 @@ func (server *Server) getEntry(ctx *gin.Context) {
 	// return res
 	ctx.JSON(http.StatusOK, entry)
 }
+
+type listEntriesRequest struct {
+	PageID   int32 `form:"page" binding:"required,min=1"`
+	PageSize int32 `form:"size" binding:"required,min=5,max=10"`
+}
+
+func (server *Server) listEntries(ctx *gin.Context) {
+	var req listEntriesRequest
+	// validate the request
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	// get entries
+	entries, err := server.store.ListEntries(ctx, db.ListEntriesParams{
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// return res
+	ctx.JSON(http.StatusOK, entries)
+}
