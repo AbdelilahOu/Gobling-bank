@@ -115,3 +115,34 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	// return res
 	ctx.JSON(http.StatusOK, entry)
 }
+
+type deleteEntryRequest struct {
+	ID uuid.UUID `uri:"id" binding:"required,uuid"`
+}
+
+func (server *Server) deleteEntry(ctx *gin.Context) {
+	var req deleteEntryRequest
+	// validate the request
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	// get entry
+	entry, err := server.store.GetEntry(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// delete entry
+	err = server.store.DeleteEntry(ctx, req.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// return res
+	ctx.JSON(http.StatusOK, entry)
+}
