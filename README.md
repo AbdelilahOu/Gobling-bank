@@ -55,3 +55,4 @@ first this is how you execute any command in docker:
     ```bash
     docker run --rm -v "$(pwd):/src" -w /src sqlc/sqlc generate
     ```
+
