@@ -18,7 +18,7 @@ func GenerateRandomEntry(t *testing.T) db.Entry {
 		Amount:    utils.RandomAmount(),
 	}
 	//
-	entry, err := testQueries.CreateEntry(context.Background(), arg)
+	entry, err := testStore.CreateEntry(context.Background(), arg)
 	// check error
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
@@ -40,7 +40,7 @@ func TestGetEntry(t *testing.T) {
 	// generate entry
 	entry := GenerateRandomEntry(t)
 	// get generated entry
-	retrievedEntry, err := testQueries.GetEntry(context.Background(), entry.ID)
+	retrievedEntry, err := testStore.GetEntry(context.Background(), entry.ID)
 	// check for errors
 	require.NoError(t, err)
 	require.NotEmpty(t, retrievedEntry)
@@ -59,7 +59,7 @@ func TestUpdateEntry(t *testing.T) {
 		Amount: utils.RandomAmount(),
 	}
 	//
-	updatedEntry, err := testQueries.UpdateEntry(context.Background(), arg)
+	updatedEntry, err := testStore.UpdateEntry(context.Background(), arg)
 	// check for errors
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedEntry)
@@ -73,11 +73,11 @@ func TestUpdateEntry(t *testing.T) {
 func TestDeleteEntry(t *testing.T) {
 	entry := GenerateRandomEntry(t)
 	// delete entry
-	err := testQueries.DeleteEntry(context.Background(), entry.ID)
+	err := testStore.DeleteEntry(context.Background(), entry.ID)
 	// check for errors
 	require.NoError(t, err)
 	// get deleted entry
-	retrievedEntry, err := testQueries.GetEntry(context.Background(), entry.ID)
+	retrievedEntry, err := testStore.GetEntry(context.Background(), entry.ID)
 	// check for errors
 	require.Error(t, err)
 	require.Empty(t, retrievedEntry)

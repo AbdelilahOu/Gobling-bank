@@ -20,7 +20,7 @@ func GenerateRandomTransfer(t *testing.T) db.Transfer {
 		Amount:        utils.RandomAmount(),
 	}
 	// create transfer
-	transfer, err := testQueries.CreateTransfer(context.Background(), arg)
+	transfer, err := testStore.CreateTransfer(context.Background(), arg)
 	// check for errors
 	require.NoError(t, err)
 	require.NotEmpty(t, transfer)
@@ -41,7 +41,7 @@ func TestGetTransfer(t *testing.T) {
 	// generate transfer
 	transfer := GenerateRandomTransfer(t)
 	// get the generated transfer
-	retrievedTransfer, err := testQueries.GetTransfer(context.Background(), transfer.ID)
+	retrievedTransfer, err := testStore.GetTransfer(context.Background(), transfer.ID)
 	// check for errors
 	require.NoError(t, err)
 	require.NotEmpty(t, retrievedTransfer)
@@ -61,7 +61,7 @@ func TestUpdateTransfer(t *testing.T) {
 		ID:     transfer.ID,
 		Amount: utils.RandomAmount(),
 	}
-	updatedTransfer, err := testQueries.UpdateTransfer(context.Background(), arg)
+	updatedTransfer, err := testStore.UpdateTransfer(context.Background(), arg)
 	// check for errors
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedTransfer)
@@ -78,11 +78,11 @@ func TestDeleteTransfer(t *testing.T) {
 	// generate transfer
 	transfer := GenerateRandomTransfer(t)
 	// delete transfer
-	err := testQueries.DeleteTransfer(context.Background(), transfer.ID)
+	err := testStore.DeleteTransfer(context.Background(), transfer.ID)
 	// check for errors
 	require.NoError(t, err)
 	// get transfer
-	gotTransfer, err := testQueries.GetTransfer(context.Background(), transfer.ID)
+	gotTransfer, err := testStore.GetTransfer(context.Background(), transfer.ID)
 	// check for errors
 	require.Error(t, err)
 	require.Empty(t, gotTransfer)

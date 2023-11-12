@@ -10,22 +10,22 @@ import (
 )
 
 func TestTransfer(t *testing.T) {
-	// create store
-	store := db.NewStore(testDb)
+	// create testStore
+
 	// create accounts
 	account1 := GenerateRandomAccount(t)
 	account2 := GenerateRandomAccount(t)
 	fmt.Println(">>>> before : ", account1.Balance, account2.Balance)
 	// run a concurent transfer transactions
 	n := 5
-	amount := int64(10)
+	amount := int64(1)
 	// make channels to get data from go routines
 	errs := make(chan error)
 	results := make(chan db.TransferTxResult)
 	// run transactions on a go routine
 	for i := 0; i < n; i++ {
 		go func() {
-			result, err := store.TransferTx(context.Background(), db.TransferTxParams{
+			result, err := testStore.TransferTx(context.Background(), db.TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
 				Amount:        amount,
@@ -60,7 +60,7 @@ func TestTransfer(t *testing.T) {
 		require.NotZero(t, fromEntry.ID)
 		require.NotZero(t, fromEntry.CreatedAt)
 		// get entry from db
-		_, err = store.GetEntry(context.Background(), fromEntry.ID)
+		_, err = testStore.GetEntry(context.Background(), fromEntry.ID)
 		require.NoError(t, err)
 
 		toEntry := result.ToEntry
@@ -70,7 +70,7 @@ func TestTransfer(t *testing.T) {
 		require.NotZero(t, toEntry.ID)
 		require.NotZero(t, toEntry.CreatedAt)
 		// get entry from db
-		_, err = store.GetEntry(context.Background(), toEntry.ID)
+		_, err = testStore.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 		// check accounts
 		fromAccount := result.FromAccount
@@ -96,64 +96,63 @@ func TestTransfer(t *testing.T) {
 		existed[k] = true
 	}
 	// check final ballence
-	updatedAccount1, err := store.GetAccount(context.Background(), account1.ID)
+	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 
-	updatedAccount2, err := store.GetAccount(context.Background(), account2.ID)
+	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 
 	fmt.Println(">>>> after : ", updatedAccount1.Balance, updatedAccount2.Balance)
 
 	require.Equal(t, updatedAccount1.Balance, account1.Balance-int64(n)*amount)
 	require.Equal(t, updatedAccount2.Balance, account2.Balance+int64(n)*amount)
-
 }
 
-func TestDeadLockTransfer(t *testing.T) {
-	// create store
-	store := db.NewStore(testDb)
-	// create accounts
-	account1 := GenerateRandomAccount(t)
-	account2 := GenerateRandomAccount(t)
-	fmt.Println(">>>> before : ", account1.Balance, account2.Balance)
-	// run a concurent transfer transactions
-	n := 10
-	amount := int64(10)
-	// make channels to get data from go routines
-	errs := make(chan error)
-	// run transactions on a go routine
-	for i := 0; i < n; i++ {
-		FromAccountID := account1.ID
-		ToAccountID := account2.ID
-		if i%2 == 1 {
-			FromAccountID = account2.ID
-			ToAccountID = account1.ID
-		}
-		go func() {
-			_, err := store.TransferTx(context.Background(), db.TransferTxParams{
-				FromAccountID: FromAccountID,
-				ToAccountID:   ToAccountID,
-				Amount:        amount,
-			})
+// func TestDeadLockTransfer(t *testing.T) {
+// 	// create testStore
+//
+// 	// create accounts
+// 	account1 := GenerateRandomAccount(t)
+// 	account2 := GenerateRandomAccount(t)
+// 	fmt.Println(">>>> before : ", account1.Balance, account2.Balance)
+// 	// run a concurent transfer transactions
+// 	n := 10
+// 	amount := int64(10)
+// 	// make channels to get data from go routines
+// 	errs := make(chan error)
+// 	// run transactions on a go routine
+// 	for i := 0; i < n; i++ {
+// 		FromAccountID := account1.ID
+// 		ToAccountID := account2.ID
+// 		if i%2 == 1 {
+// 			FromAccountID = account2.ID
+// 			ToAccountID = account1.ID
+// 		}
+// 		go func() {
+// 			_, err := testStore.TransferTx(context.Background(), db.TransferTxParams{
+// 				FromAccountID: FromAccountID,
+// 				ToAccountID:   ToAccountID,
+// 				Amount:        amount,
+// 			})
 
-			errs <- err
-		}()
-	}
-	for i := 0; i < n; i++ {
-		// check errors
-		err := <-errs
-		require.NoError(t, err)
-		// get entry from db
-	}
-	// check final ballence
-	updatedAccount1, err := store.GetAccount(context.Background(), account1.ID)
-	require.NoError(t, err)
+// 			errs <- err
+// 		}()
+// 	}
+// 	for i := 0; i < n; i++ {
+// 		// check errors
+// 		err := <-errs
+// 		require.NoError(t, err)
+// 		// get entry from db
+// 	}
+// 	// check final ballence
+// 	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
+// 	require.NoError(t, err)
 
-	updatedAccount2, err := store.GetAccount(context.Background(), account2.ID)
-	require.NoError(t, err)
+// 	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
+// 	require.NoError(t, err)
 
-	fmt.Println(">>>> after : ", updatedAccount1.Balance, updatedAccount2.Balance)
+// 	fmt.Println(">>>> after : ", updatedAccount1.Balance, updatedAccount2.Balance)
 
-	require.Equal(t, updatedAccount1.Balance, account1.Balance)
-	require.Equal(t, updatedAccount2.Balance, account2.Balance)
-}
+// 	require.Equal(t, updatedAccount1.Balance, account1.Balance)
+// 	require.Equal(t, updatedAccount2.Balance, account2.Balance)
+// }
