@@ -153,6 +153,13 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	// delete account
 	err = server.store.DeleteAccount(ctx, req.ID)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}

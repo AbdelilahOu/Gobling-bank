@@ -8,6 +8,7 @@ import (
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type CreateTransferRequest struct {
@@ -37,6 +38,13 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		Amount:        req.Amount,
 	})
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}

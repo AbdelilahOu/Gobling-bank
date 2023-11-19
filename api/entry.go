@@ -8,6 +8,7 @@ import (
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type createEntryRequest struct {
@@ -28,6 +29,13 @@ func (server *Server) createEntry(ctx *gin.Context) {
 		Amount:    req.Amount,
 	})
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -140,6 +148,13 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	// delete entry
 	err = server.store.DeleteEntry(ctx, req.ID)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
