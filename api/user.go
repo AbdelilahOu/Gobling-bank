@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/utils"
@@ -58,5 +59,51 @@ func (server *Server) createUser(ctx *gin.Context) {
 		Username: user.Username,
 		Email:    user.Email,
 		FullName: user.FullName,
+	})
+}
+
+type loginUserRequest struct {
+	Username string `json:"username" binding:"required,alphanum"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type loginUserResponse struct {
+	Username string `json:"username"`
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Token    string `json:"token"`
+}
+
+func (server *Server) loginUser(ctx *gin.Context) {
+	var req loginUserRequest
+	// validate the request
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	// get user
+	user, err := server.store.GetUser(ctx, req.Username)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// check password
+	err = utils.CheckPassword(req.Password, user.HashedPassword)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))
+		return
+	}
+	// generate token
+	token, payload, err := server.tokenMaker.CreateToken(user.Username, time.Hour*48)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// return res
+	ctx.JSON(http.StatusOK, loginUserResponse{
+		FullName: user.FullName,
+		Username: payload.Username,
+		Email:    user.Email,
+		Token:    token,
 	})
 }
