@@ -43,13 +43,13 @@ func NewServer(config config.Config, store db.Store) (*Server, error) {
 	authRoutes.PUT("/accounts/:id", server.updateAccount)
 	authRoutes.DELETE("/accounts/:id", server.deleteAccount)
 
-	router.POST("/entries", server.createEntry)
-	router.GET("/entries/:id", server.getEntry)
-	router.GET("/entries", server.listEntries)
-	router.PUT("/entries/:id", server.updateEntry)
-	router.DELETE("/entries/:id", server.deleteEntry)
+	authRoutes.POST("/entries", server.createEntry)
+	authRoutes.GET("/entries/:id", server.getEntry)
+	authRoutes.GET("/entries", server.listEntries)
+	authRoutes.PUT("/entries/:id", server.updateEntry)
+	authRoutes.DELETE("/entries/:id", server.deleteEntry)
 
-	router.POST("/transfers", server.createTransfer)
+	authRoutes.POST("/transfers", server.createTransfer)
 
 	server.router = router
 	return server, nil
