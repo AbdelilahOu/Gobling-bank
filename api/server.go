@@ -1,7 +1,11 @@
 package api
 
 import (
+	"fmt"
+
+	"github.com/AbdelilahOu/GoThingy/config"
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/AbdelilahOu/GoThingy/token"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -9,13 +13,19 @@ import (
 
 // server serves http requests
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     config.Config
+	store      db.Store
+	router     *gin.Engine
+	tokenMaker token.Maker
 }
 
 // create new server
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config config.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+	server := &Server{store: store, config: config, tokenMaker: tokenMaker}
 	router := gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -23,12 +33,15 @@ func NewServer(store db.Store) *Server {
 	}
 
 	router.POST("/users", server.createUser)
+	// router.POST("/users/login",server.loginUser)
 
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.listAccounts)
-	router.PUT("/accounts/:id", server.updateAccount)
-	router.DELETE("/accounts/:id", server.deleteAccount)
+	authRoutes := router.Group("/").Use(AuthMiddleware(tokenMaker))
+
+	authRoutes.POST("/accounts", server.createAccount)
+	authRoutes.GET("/accounts/:id", server.getAccount)
+	authRoutes.GET("/accounts", server.listAccounts)
+	authRoutes.PUT("/accounts/:id", server.updateAccount)
+	authRoutes.DELETE("/accounts/:id", server.deleteAccount)
 
 	router.POST("/entries", server.createEntry)
 	router.GET("/entries/:id", server.getEntry)
@@ -39,7 +52,7 @@ func NewServer(store db.Store) *Server {
 	router.POST("/transfers", server.createTransfer)
 
 	server.router = router
-	return server
+	return server, nil
 }
 
 // start server
