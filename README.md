@@ -34,9 +34,9 @@ We use SQLC for generating Go code from SQL queries, To get started with SQLC, a
 
 first this is how you execute any command in docker:
 
-    ```
-    docker exec -it <container_name_or_container_id> <command>  [args]
-    ```
+```
+docker exec -it <container_name_or_container_id> <command>  [args]
+```
 
 1. **Pull the SQLC Docker image**:
 
@@ -62,26 +62,25 @@ Now that we made some api end points lets build an image for our backend
 
 first lets create a docker file and pass next code:
 
-    ```
-    FROM golang:1.20-alpine3.18
+```
+FROM golang:1.20-alpine3.18
 
-    WORKDIR /app
+WORKDIR /app
 
-    COPY . .
+COPY . .
 
-    RUN go build -o main main.go
+RUN go build -o main main.go
 
-    EXPOSE 8080:8080
+EXPOSE 8080:8080
 
-    CMD ["/app/main"]
-
-    ```
+CMD ["/app/main"]
+```
 
 To build the image run the next command
 
-    ```
-    docker build -t backend-masterclass:1.1 .
-    ```
+```
+docker build -t backend-masterclass:1.1 .
+```
 
 As you can see we giving a name for our docker image using the -t flag with a version also.
 
@@ -93,35 +92,35 @@ So now how can we make this less BIG ?
 
 We have to use something called multi-stage builds, as the name suggests we have to build our image in multiple steps step one is download the golang image and the packages the our project needs and then build them, next step we copy the result binary file of our project and run it heres the code:
 
-    ```
-    # step one
-    FROM golang:1.20-alpine3.18 AS builder
+```
+# step one
+FROM golang:1.20-alpine3.18 AS builder
 
-    WORKDIR /app
+WORKDIR /app
 
-    COPY . .
+COPY . .
 
-    RUN go build -o main main.go
+RUN go build -o main main.go
 
-    #step two
-    FROM alpine
+#step two
+FROM alpine
 
-    WORKDIR /app
+WORKDIR /app
 
-    COPY --from=builder /app/main .
+COPY --from=builder /app/main .
 
-    COPY app.env .
+COPY app.env .
 
-    EXPOSE 8080
+EXPOSE 8080
 
-    CMD ["/app/main"]
-    ```
+CMD ["/app/main"]
+```
 
 as you can see we build the app in the first step and all we do in the second step is just run the app
 now lets create a container using our image:
 
-    ```
-    docker run --name backend-container -p 8080:8080 -e GIN_MODE=release 305c5c8595d5660950a525670746a8f7e1c77a34e614f62e4f83e03cce3c05e5
-    ```
+```
+docker run --name backend-container -p 8080:8080 -e GIN_MODE=release 305c5c8595d5660950a525670746a8f7e1c77a34e614f62e4f83e03cce3c05e5
+```
 
 here we run our container with the name backend-container and exposing the ports using -p flag and define some variable with -e flag and the last long string is the id of our image
