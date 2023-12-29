@@ -1,7 +1,13 @@
 CURRENT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
+
+up:
+	make containerup
+	make createdb
+	make migrationup
+	
 containerup:
-	docker run --name postgres-database-dev -e POSTGRES_USER=root -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres:15
+	docker run --name postgres-database-dev --network bank-network -e POSTGRES_USER=root -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres:15
 
 containerdown:
 	docker stop postgres-database-dev
