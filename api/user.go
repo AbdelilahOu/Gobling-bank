@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -25,6 +26,7 @@ type createUserResponse struct {
 
 func (server *Server) createUser(ctx *gin.Context) {
 	var req createUserRequest
+	fmt.Println("req:", req)
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
