@@ -7,23 +7,23 @@ up:
 	make migrationup
 	
 containerup:
-	docker run --name postgres-database-dev --network bank-network -e POSTGRES_USER=root -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres:15
+	docker run --name backend-masterclass-db --network bank-network -e POSTGRES_USER=root -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres:15
 
 containerdown:
-	docker stop postgres-database-dev
-	docker rm --force postgres-database-dev
+	docker stop backend-masterclass-db
+	docker rm --force backend-masterclass-db
 
 createdb: 
-	docker exec -it postgres-database-dev createdb --username=root --owner=root simple_bank
+	docker exec -it backend-masterclass-db createdb --username=root --owner=root bank
 
 dropdb:
-	docker exec -it postgres-database-dev dropdb simple_bank
+	docker exec -it backend-masterclass-db dropdb bank
 
 migrationup:
-	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/simple_bank?sslmode=disable" --verbose up
+	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/bank?sslmode=disable" --verbose up
 
 migrationdown:
-	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/simple_bank?sslmode=disable" --verbose down
+	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/bank?sslmode=disable" --verbose down
 
 sqlc: 
 	docker run --rm -v ${CURRENT_DIR}:/src -w /src sqlc/sqlc generate
