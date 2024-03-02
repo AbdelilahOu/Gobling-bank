@@ -124,3 +124,5 @@ docker run --name backend-container -p 8080:8080 -e GIN_MODE=release 305c5c8595d
 ```
 
 here we run our container with the name backend-container and exposing the ports using -p flag and define some variable with -e flag and the last long string is the id of our image
+
+### Use Docker compose

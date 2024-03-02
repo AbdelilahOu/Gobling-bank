@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/utils"
@@ -96,7 +95,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 	// generate token
-	token, payload, err := server.tokenMaker.CreateToken(user.Username, time.Hour*48)
+	token, payload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return

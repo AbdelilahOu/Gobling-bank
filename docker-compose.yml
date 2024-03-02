@@ -16,6 +16,9 @@ services:
       - "8080:8080"
     environment:
       - DB_SOURCE=postgresql://root:mysecretpassword@database/bank?sslmode=disable
+      - DB_DRIVER=postgres
+      - SERVER_ADDRESS=0.0.0.0:8080
+      - TOKEN_SYMMETRIC_KEY=dfjhslkdjfmsqmdifooierfnvcnqqijd
     depends_on:
       - database
     entrypoint: ["/app/wait-for.sh", "database:5432", "--", "/app/start.sh"]
