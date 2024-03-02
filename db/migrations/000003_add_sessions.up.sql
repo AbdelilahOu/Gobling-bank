@@ -1,9 +1,9 @@
 CREATE TABLE sessions (
     id uuid PRIMARY KEY,
-    username varchar(255) NOT NULL,
-    refresh_token varchar(255) NOT NULL,
-    user_agent varchar(255) NOT NULL,
-    client_ip varchar(255) NOT NULL,
+    username varchar NOT NULL,
+    refresh_token varchar NOT NULL,
+    user_agent varchar NOT NULL,
+    client_ip varchar NOT NULL,
     id_blocked boolean NOT NULL DEFAULT false,
     expires_at timestamptz NOT NULL,
     created_at timestamptz NOT NULL DEFAULT (now())

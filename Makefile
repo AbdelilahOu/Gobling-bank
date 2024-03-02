@@ -23,7 +23,7 @@ migrationup:
 	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/bank?sslmode=disable" --verbose up
 
 migrationdown:
-	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/bank?sslmode=disable" --verbose down
+	migrate -path db/migrations -database "postgres://root:mysecretpassword@localhost:5432/bank?sslmode=disable" --verbose down 1
 
 sqlc: 
 	docker run --rm -v ${CURRENT_DIR}:/src -w /src sqlc/sqlc generate

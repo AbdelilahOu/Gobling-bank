@@ -3,10 +3,12 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -69,10 +71,14 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	Username string `json:"username"`
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
-	Token    string `json:"token"`
+	SessionID             uuid.UUID `json:"session_id"`
+	Username              string    `json:"username"`
+	FullName              string    `json:"full_name"`
+	Email                 string    `json:"email"`
+	AccessToken           string    `json:"accessToken"`
+	RefreshToken          string    `json:"refreshToken"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
+	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
 }
 
 func (server *Server) loginUser(ctx *gin.Context) {
@@ -95,16 +101,40 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 	// generate token
-	token, payload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// generate refresh token
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.RefreshTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// create session
+	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           refreshPayload.ID,
+		Username:     req.Username,
+		RefreshToken: refreshToken,
+		UserAgent:    "",
+		ClientIp:     "",
+		IDBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiredAt,
+	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
 	// return res
 	ctx.JSON(http.StatusOK, loginUserResponse{
-		FullName: user.FullName,
-		Username: payload.Username,
-		Email:    user.Email,
-		Token:    token,
+		SessionID:             session.ID,
+		FullName:              user.FullName,
+		Username:              user.Username,
+		Email:                 user.Email,
+		AccessToken:           accessToken,
+		RefreshToken:          refreshToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
 	})
 }
