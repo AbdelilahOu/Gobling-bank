@@ -117,9 +117,9 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		ID:           refreshPayload.ID,
 		Username:     req.Username,
 		RefreshToken: refreshToken,
-		UserAgent:    "",
-		ClientIp:     "",
-		IDBlocked:    false,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiredAt,
 	})
 	if err != nil {
