@@ -34,15 +34,9 @@ test:
 server: 
 	go run main.go
 
-respawn:
-	make containerdown
-	make containerup
-	timeout 3
-	make createdb
-	make migrationup
-	timeout 2
-	make sqlc
-	timeout 2
-	make test
+proto:
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+    --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+    proto/*.proto
 
-.PHONY: postgres createdb dropdb migrationup migrationdown sqlc test respawn
+.PHONY: postgres createdb dropdb migrationup migrationdown sqlc test respawn proto
