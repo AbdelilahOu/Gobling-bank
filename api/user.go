@@ -57,6 +57,8 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
+	// send verification email
+
 	// return res
 	ctx.JSON(http.StatusOK, createUserResponse{
 		Username: user.Username,
