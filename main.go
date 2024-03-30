@@ -2,11 +2,14 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/AbdelilahOu/GoThingy/api"
 	"github.com/AbdelilahOu/GoThingy/config"
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/AbdelilahOu/GoThingy/worker"
+	"github.com/hibiken/asynq"
 	_ "github.com/lib/pq"
 )
 
@@ -20,9 +23,15 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
-	// create store and server
+	// start redis
+	redisOps := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+	taskDistributor := worker.NewRedisTaskDistributor(redisOps)
 	store := db.NewStore(conn)
-	server, err := api.NewServer(config, store)
+	go runTaskProcessor(redisOps, store)
+	// create store and server
+	server, err := api.NewServer(config, store, taskDistributor)
 	if err != nil {
 		panic(err)
 	}
@@ -30,5 +39,13 @@ func main() {
 	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server:", err)
+	}
+}
+
+func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+	err := taskProcessor.Start()
+	if err != nil {
+		fmt.Println(err)
 	}
 }

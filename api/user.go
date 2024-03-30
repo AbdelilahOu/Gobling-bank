@@ -7,6 +7,7 @@ import (
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/utils"
+	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -58,7 +59,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 	// send verification email
-
+	taskPayload := &worker.PayloadSendVerifyEmail{
+		Username: user.Username,
+	}
+	server.taskDistributor.DistributTaskSendVerifyEmail(ctx, taskPayload)
 	// return res
 	ctx.JSON(http.StatusOK, createUserResponse{
 		Username: user.Username,
