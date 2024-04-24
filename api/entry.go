@@ -85,7 +85,6 @@ func (server *Server) listEntries(ctx *gin.Context) {
 	// validate the request
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
-
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -96,7 +95,6 @@ func (server *Server) listEntries(ctx *gin.Context) {
 	})
 	if err != nil {
 		server.logger.Error(fmt.Sprintf("list entries error: %s", err))
-
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -114,7 +112,6 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
-
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -123,7 +120,6 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			server.logger.Error(fmt.Sprintf("get entry for update db error no row found: %s", err))
-
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
@@ -137,7 +133,6 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	})
 	if err != nil {
 		server.logger.Error(fmt.Sprintf("update entry db error: %s", err))
-
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -154,7 +149,6 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
-
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}

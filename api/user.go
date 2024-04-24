@@ -33,7 +33,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
-
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -61,7 +60,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 			}
 		}
 		server.logger.Error(fmt.Sprintf("create user error unique_violation: %s", err))
-
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}

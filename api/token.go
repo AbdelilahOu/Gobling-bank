@@ -24,7 +24,6 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
-
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -32,7 +31,6 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 	refreshPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
 	if err != nil {
 		server.logger.Error(fmt.Sprintf("verify token error: %s", err))
-
 		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 		return
 	}
@@ -45,7 +43,6 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 			return
 		}
 		server.logger.Error(fmt.Sprintf("get session error: %s", err))
-
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
