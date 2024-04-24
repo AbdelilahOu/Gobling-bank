@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
@@ -21,6 +22,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	var req createAccountRequest
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -36,10 +38,12 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
+				server.logger.Error(fmt.Sprintf("create account db error foreign_key_violation or unique_violation: %s", err))
 				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
 				return
 			}
 		}
+		server.logger.Error(fmt.Sprintf("create account error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -55,6 +59,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	var req getAccountRequest
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -62,9 +67,11 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			server.logger.Error(fmt.Sprintf("get account db error no row found: %s", err))
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
+		server.logger.Error(fmt.Sprintf("get account error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -72,6 +79,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	// check if user is the owner of the account
 	if authPayload.Username != account.Owner {
+		server.logger.Error(fmt.Println("get account error: account doesn't belong to the authenticated user"))
 		err := errors.New("account doesn't belong to the authenticated user")
 		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 		return
@@ -89,6 +97,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	var req listAccountsRequest
 	// validate the request
 	if err := ctx.ShouldBindQuery(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -101,6 +110,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	})
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("list accounts error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -117,6 +127,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 	var req updateAccountRequest
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -124,9 +135,11 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			server.logger.Error(fmt.Sprintf("get account for update db error no row found: %s", err))
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
+		server.logger.Error(fmt.Sprintf("get account for update error no row found: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -136,6 +149,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 		Balance: req.Balance,
 	})
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("update account db error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -151,6 +165,7 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	var req deleteAccountRequest
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -158,9 +173,11 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			server.logger.Error(fmt.Sprintf("get account for delete db error no row found: %s", err))
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
+		server.logger.Error(fmt.Sprintf("get account for delete error no row found: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -170,10 +187,12 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
+				server.logger.Error(fmt.Sprintf("delete account db error foreign_key_violation or unique_violation: %s", err))
 				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
 				return
 			}
 		}
+		server.logger.Error(fmt.Sprintf("delete account error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}

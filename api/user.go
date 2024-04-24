@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/lib/pq"
 )
 
@@ -28,15 +30,17 @@ type createUserResponse struct {
 
 func (server *Server) createUser(ctx *gin.Context) {
 	var req createUserRequest
-	fmt.Println("req:", req)
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
+
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
 	// generate hash
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("generate hash password error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -51,18 +55,29 @@ func (server *Server) createUser(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "unique_violation":
+				server.logger.Error(fmt.Sprintf("create user db error unique_violation: %s", err))
 				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
 				return
 			}
 		}
+		server.logger.Error(fmt.Sprintf("create user error unique_violation: %s", err))
+
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
 	// send verification email
+	ops := []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.QueueCritical),
+	}
 	taskPayload := &worker.PayloadSendVerifyEmail{
 		Username: user.Username,
 	}
-	server.taskDistributor.DistributTaskSendVerifyEmail(ctx, taskPayload)
+	err = server.taskDistributor.DistributTaskSendVerifyEmail(ctx, taskPayload, ops...)
+	if err != nil {
+		server.logger.Error(fmt.Sprintf("send verification email error: %s", err))
+	}
 	// return res
 	ctx.JSON(http.StatusOK, createUserResponse{
 		Username: user.Username,
@@ -91,30 +106,40 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	var req loginUserRequest
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
 	// get user
 	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			server.logger.Error(fmt.Sprintf("get user db error no row found: %s", err))
+			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
+			return
+		}
+		server.logger.Error(fmt.Sprintf("get user error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
 	// check password
 	err = utils.CheckPassword(req.Password, user.HashedPassword)
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("user login password check error: %s", err))
 		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 		return
 	}
 	// generate token
 	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("user login create access token error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
 	// generate refresh token
 	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.RefreshTokenDuration)
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("user login create refresh token error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -129,6 +154,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		ExpiresAt:    refreshPayload.ExpiredAt,
 	})
 	if err != nil {
+		server.logger.Error(fmt.Sprintf("user login create session error: %s", err))
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
