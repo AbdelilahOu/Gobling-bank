@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
@@ -80,8 +79,8 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	// check if user is the owner of the account
 	if authPayload.Username != account.Owner {
-		server.logger.Error(fmt.Println("get account error: account doesn't belong to the authenticated user"))
 		err := errors.New("account doesn't belong to the authenticated user")
+		log.Error().Err(err)
 		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 		return
 	}
