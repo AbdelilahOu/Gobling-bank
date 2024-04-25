@@ -36,6 +36,7 @@ func NewServer(config config.Config, store db.Store, taskDistributor worker.Task
 		taskDistributor: taskDistributor,
 		logger:          *utils.NewLogger(),
 	}
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {

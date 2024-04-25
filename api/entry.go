@@ -2,7 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
@@ -10,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/rs/zerolog/log"
 )
 
 type createEntryRequest struct {
@@ -21,7 +21,7 @@ func (server *Server) createEntry(ctx *gin.Context) {
 	var req createEntryRequest
 	// validate the request
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
+		log.Error().Err(err).Msg("invalid request")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -34,12 +34,12 @@ func (server *Server) createEntry(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
-				server.logger.Error(fmt.Sprintf("create entry db error foreign_key_violation or unique_violation: %s", err))
+				log.Error().Err(err).Msg("create entry db error foreign_key_violation or unique_violation")
 				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
 				return
 			}
 		}
-		server.logger.Error(fmt.Sprintf("create entry error: %s", err))
+		log.Error().Err(err).Msg("create entry error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -55,7 +55,7 @@ func (server *Server) getEntry(ctx *gin.Context) {
 	var req getEntryRequest
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
+		log.Error().Err(err).Msg("invalid request")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -63,11 +63,11 @@ func (server *Server) getEntry(ctx *gin.Context) {
 	entry, err := server.store.GetEntry(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			server.logger.Error(fmt.Sprintf("get entry db error no row found: %s", err))
+			log.Error().Err(err).Msg("get entry db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
-		server.logger.Error(fmt.Sprintf("get entry error: %s", err))
+		log.Error().Err(err).Msg("get entry error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -84,7 +84,7 @@ func (server *Server) listEntries(ctx *gin.Context) {
 	var req listEntriesRequest
 	// validate the request
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
+		log.Error().Err(err).Msg("invalid request")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -94,7 +94,7 @@ func (server *Server) listEntries(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	})
 	if err != nil {
-		server.logger.Error(fmt.Sprintf("list entries error: %s", err))
+		log.Error().Err(err).Msg("list entries error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -111,7 +111,7 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	var req updateEntryRequest
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
+		log.Error().Err(err).Msg("invalid request")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -119,7 +119,7 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	entry, err := server.store.GetEntry(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			server.logger.Error(fmt.Sprintf("get entry for update db error no row found: %s", err))
+			log.Error().Err(err).Msg("get entry for update db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
@@ -132,7 +132,7 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 		Amount: req.Amount,
 	})
 	if err != nil {
-		server.logger.Error(fmt.Sprintf("update entry db error: %s", err))
+		log.Error().Err(err).Msg("update entry db error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -148,7 +148,7 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	var req deleteEntryRequest
 	// validate the request
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		server.logger.Error(fmt.Sprintf("invalid request: %s", err))
+		log.Error().Err(err).Msg("invalid request")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -156,11 +156,11 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	entry, err := server.store.GetEntry(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			server.logger.Error(fmt.Sprintf("get entry for delete db error no row found: %s", err))
+			log.Error().Err(err).Msg("get entry for delete db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
 		}
-		server.logger.Error(fmt.Sprintf("get entry for delete error no row found: %s", err))
+		log.Error().Err(err).Msg("get entry for delete error no row found")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -170,12 +170,12 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
-				server.logger.Error(fmt.Sprintf("delete entry db error foreign_key_violation or unique_violation: %s", err))
+				log.Error().Err(err).Msg("delete entry db error foreign_key_violation or unique_violation")
 				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
 				return
 			}
 		}
-		server.logger.Error(fmt.Sprintf("delete entry error: %s", err))
+		log.Error().Err(err).Msg("delete entry error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
