@@ -42,13 +42,28 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Username:       req.Username,
+			HashedPassword: hashedPassword,
+			FullName:       req.FullName,
+			Email:          req.Email,
+		},
+		AfterCreate: func(user db.User) error {
+			// send verification email
+			ops := []asynq.Option{
+				asynq.MaxRetry(10),
+				asynq.ProcessIn(10 * time.Second),
+				asynq.Queue(worker.QueueCritical),
+			}
+			taskPayload := &worker.PayloadSendVerifyEmail{
+				Username: user.Username,
+			}
+			return server.taskDistributor.DistributTaskSendVerifyEmail(ctx, taskPayload, ops...)
+		},
+	}
 	// create user
-	user, err := server.store.CreateUser(ctx, db.CreateUserParams{
-		Username:       req.Username,
-		HashedPassword: hashedPassword,
-		FullName:       req.FullName,
-		Email:          req.Email,
-	})
+	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -62,24 +77,11 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
-	// send verification email
-	ops := []asynq.Option{
-		asynq.MaxRetry(10),
-		asynq.ProcessIn(10 * time.Second),
-		asynq.Queue(worker.QueueCritical),
-	}
-	taskPayload := &worker.PayloadSendVerifyEmail{
-		Username: user.Username,
-	}
-	err = server.taskDistributor.DistributTaskSendVerifyEmail(ctx, taskPayload, ops...)
-	if err != nil {
-		server.logger.Log.Error().Err(err).Msg("send verification email error")
-	}
 	// return res
 	ctx.JSON(http.StatusOK, createUserResponse{
-		Username: user.Username,
-		Email:    user.Email,
-		FullName: user.FullName,
+		Username: txResult.User.Username,
+		Email:    txResult.User.Email,
+		FullName: txResult.User.FullName,
 	})
 }
 
