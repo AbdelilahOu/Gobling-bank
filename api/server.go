@@ -6,6 +6,7 @@ import (
 	"github.com/AbdelilahOu/GoThingy/config"
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/token"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -19,6 +20,7 @@ type Server struct {
 	router          *gin.Engine
 	tokenMaker      token.Maker
 	taskDistributor worker.TaskDistributor
+	logger          utils.Logger
 }
 
 // create new server
@@ -27,11 +29,13 @@ func NewServer(config config.Config, store db.Store, taskDistributor worker.Task
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
+	//
 	server := &Server{
 		store:           store,
 		config:          config,
 		tokenMaker:      tokenMaker,
 		taskDistributor: taskDistributor,
+		logger:          *utils.NewLogger(),
 	}
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()

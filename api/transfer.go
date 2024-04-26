@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/rs/zerolog/log"
 )
 
 type CreateTransferRequest struct {
@@ -24,7 +23,7 @@ type CreateTransferRequest struct {
 func (server *Server) createTransfer(ctx *gin.Context) {
 	var req CreateTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		log.Error().Err(err).Msg("invalid request")
+		server.logger.Log.Error().Err(err).Msg("invalid request")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return
 	}
@@ -37,7 +36,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	// check if user is the owner of the account
 	if authPayload.Username != fromAccount.Owner {
 		err := errors.New("from account doesn't belong to authenticated user")
-		log.Error().Err(err)
+		server.logger.Log.Error().Err(err)
 		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))
 		return
 	}
@@ -55,12 +54,12 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
-				log.Error().Err(err).Msg("create transfer db error foreign_key_violation or unique_violation")
+				server.logger.Log.Error().Err(err).Msg("create transfer db error foreign_key_violation or unique_violation")
 				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
 				return
 			}
 		}
-		log.Error().Err(err).Msg("create transfer error")
+		server.logger.Log.Error().Err(err).Msg("create transfer error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
@@ -72,18 +71,18 @@ func (server *Server) validAccount(ctx *gin.Context, accountID uuid.UUID, curren
 	account, err := server.store.GetAccount(ctx, accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Error().Err(err).Msg("get account for transfer db error")
+			server.logger.Log.Error().Err(err).Msg("get account for transfer db error")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return account, false
 		}
-		log.Error().Err(err).Msg("get account for transfer error")
+		server.logger.Log.Error().Err(err).Msg("get account for transfer error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return account, false
 	}
 
 	if account.Currency != currency {
 		err := utils.ErrInvalidCurrency(account.ID, account.Currency, currency)
-		log.Error().Err(err).Msg("account currency error")
+		server.logger.Log.Error().Err(err).Msg("account currency error")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
 		return account, false
 	}
