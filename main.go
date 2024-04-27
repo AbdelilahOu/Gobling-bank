@@ -8,6 +8,7 @@ import (
 	"github.com/AbdelilahOu/GoThingy/api"
 	"github.com/AbdelilahOu/GoThingy/config"
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/AbdelilahOu/GoThingy/mail"
 	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/hibiken/asynq"
 	_ "github.com/lib/pq"
@@ -29,7 +30,7 @@ func main() {
 	}
 	taskDistributor := worker.NewRedisTaskDistributor(redisOps)
 	store := db.NewStore(conn)
-	go runTaskProcessor(redisOps, store)
+	go runTaskProcessor(config, redisOps, store)
 	// create store and server
 	server, err := api.NewServer(config, store, taskDistributor)
 	if err != nil {
@@ -42,8 +43,9 @@ func main() {
 	}
 }
 
-func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
-	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+func runTaskProcessor(config config.Config, redisOpt asynq.RedisClientOpt, store db.Store) {
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
 	err := taskProcessor.Start()
 	if err != nil {
 		fmt.Println(err)

@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -167,5 +168,47 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		RefreshToken:          refreshToken,
 		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
+	})
+}
+
+type verifyEmailResponse struct {
+	IsVerified bool `json:"is_verified"`
+}
+
+func (server *Server) verifyEmail(ctx *gin.Context) {
+	// get params
+	EmailID, ok := ctx.GetQuery("id")
+	if !ok && EmailID == "" {
+		err := fmt.Errorf("error getting id param")
+		server.logger.Log.Error().Err(err).Msg("invalid request")
+		ctx.JSON(http.StatusBadRequest, err)
+		return
+	}
+	ID, err := uuid.Parse(EmailID)
+	if err != nil {
+		server.logger.Log.Error().Err(err).Msg("invalid id param")
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	//
+	SecretCode, ok := ctx.GetQuery("secret_code")
+	if !ok && SecretCode == "" {
+		err := fmt.Errorf("error getting secret_code param")
+		server.logger.Log.Error().Err(err).Msg("invalid request")
+		ctx.JSON(http.StatusBadRequest, err)
+		return
+	}
+	//  verufy email
+	result, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParams{
+		EmailId:    ID,
+		SecretCode: SecretCode,
+	})
+	if err != nil {
+		server.logger.Log.Error().Err(err).Msg("couldnt verify email")
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, verifyEmailResponse{
+		IsVerified: result.User.IsEmailVerified,
 	})
 }

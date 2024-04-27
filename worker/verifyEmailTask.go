@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/hibiken/asynq"
 )
 
@@ -32,9 +34,29 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
 		return fmt.Errorf("failed to unmarshal payload, %w", err)
 	}
-	_, err := processor.store.GetUser(ctx, payload.Username)
+	user, err := processor.store.GetUser(ctx, payload.Username)
 	if err != nil {
 		return fmt.Errorf("failed to get user, %w", err)
+	}
+	verifyEmail, err := processor.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
+		Username:   user.Username,
+		Email:      user.Email,
+		SecretCode: utils.RandomString(32),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create verify email: %w", err)
+	}
+	verifyUrl := fmt.Sprintf("http://localhost:8080/users/verify-email?id=%s&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode)
+	subject := "Welcome to bank"
+	content := fmt.Sprintf(`
+		Hello %s, <br/> 
+		Thank you for registering <br/>
+		Please <a href="%s"> Click here</a> to verify eyour email
+	`, user.FullName, verifyUrl)
+	to := []string{user.Email}
+	err = processor.mailer.SendEmail(subject, content, to, nil, nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to send verify email: %w", err)
 	}
 	return nil
 }

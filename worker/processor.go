@@ -4,6 +4,7 @@ import (
 	"context"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/AbdelilahOu/GoThingy/mail"
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
@@ -22,9 +23,10 @@ type TaskProcessor interface {
 type RedisTaskProcessor struct {
 	server *asynq.Server
 	store  db.Store
+	mailer mail.EmailSender
 }
 
-func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskProcessor {
+func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store, mailer mail.EmailSender) TaskProcessor {
 	logger := utils.NewLogger()
 	redis.SetLogger(logger)
 
@@ -39,10 +41,10 @@ func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskPr
 		}),
 		Logger: logger,
 	})
-
 	return &RedisTaskProcessor{
 		server,
 		store,
+		mailer,
 	}
 }
 

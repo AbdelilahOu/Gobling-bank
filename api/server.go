@@ -46,6 +46,7 @@ func NewServer(config config.Config, store db.Store, taskDistributor worker.Task
 
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
+	router.GET("/users/verify-email", server.verifyEmail)
 	router.POST("/tokens/renew_access", server.renewAccessToken)
 
 	authRoutes := router.Group("/").Use(AuthMiddleware(tokenMaker))
