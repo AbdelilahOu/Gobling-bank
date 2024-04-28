@@ -3,26 +3,27 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/AbdelilahOu/GoThingy/api"
 	"github.com/AbdelilahOu/GoThingy/config"
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/mail"
+	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/hibiken/asynq"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	logger := utils.NewLogger()
 	config, err := config.LoadConfig(".")
 	if err != nil {
-		log.Fatal("cannot load config:", err)
+		logger.Fatal("cannot load config:", err)
 	}
 	// connect to db
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		log.Fatal("cannot connect to db:", err)
+		logger.Fatal("cannot connect to db:", err)
 	}
 	// start redis
 	redisOps := asynq.RedisClientOpt{
@@ -32,14 +33,14 @@ func main() {
 	store := db.NewStore(conn)
 	go runTaskProcessor(config, redisOps, store)
 	// create store and server
-	server, err := api.NewServer(config, store, taskDistributor)
+	server, err := api.NewServer(config, store, taskDistributor, *logger)
 	if err != nil {
 		panic(err)
 	}
 	// start server
 	err = server.Start(config.ServerAddress)
 	if err != nil {
-		log.Fatal("cannot start server:", err)
+		logger.Fatal("cannot start server:", err)
 	}
 }
 

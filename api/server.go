@@ -24,7 +24,7 @@ type Server struct {
 }
 
 // create new server
-func NewServer(config config.Config, store db.Store, taskDistributor worker.TaskDistributor) (*Server, error) {
+func NewServer(config config.Config, store db.Store, taskDistributor worker.TaskDistributor, logger utils.Logger) (*Server, error) {
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
@@ -35,7 +35,7 @@ func NewServer(config config.Config, store db.Store, taskDistributor worker.Task
 		config:          config,
 		tokenMaker:      tokenMaker,
 		taskDistributor: taskDistributor,
-		logger:          *utils.NewLogger(),
+		logger:          logger,
 	}
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
