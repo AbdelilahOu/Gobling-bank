@@ -1,13 +1,14 @@
 package tests
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/AbdelilahOu/GoThingy/config"
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	_ "github.com/lib/pq"
 )
@@ -21,14 +22,10 @@ func TestMain(m *testing.M) {
 		log.Fatal("cannot load config:", err)
 	}
 	// connect to db
-	testDb, err := sql.Open(config.DBDriver, config.DBSource)
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
-	err = testDb.Ping()
-	if err != nil {
-		log.Fatal("cannot ping db:", err)
-	}
-	testStore = db.NewStore(testDb)
+	testStore = db.NewStore(connPool)
 	os.Exit(m.Run())
 }

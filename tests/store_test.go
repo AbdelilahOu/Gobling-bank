@@ -10,8 +10,6 @@ import (
 )
 
 func TestTransfer(t *testing.T) {
-	// create testStore
-
 	// create accounts
 	account1 := GenerateRandomAccount(t)
 	account2 := GenerateRandomAccount(t)

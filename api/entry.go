@@ -1,14 +1,13 @@
 package api
 
 import (
-	"database/sql"
+	"errors"
 	"net/http"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type createEntryRequest struct {
@@ -30,13 +29,11 @@ func (server *Server) createEntry(ctx *gin.Context) {
 		Amount:    req.Amount,
 	})
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation":
-				server.logger.Log.Error().Err(err).Msg("create entry db error foreign_key_violation or unique_violation")
-				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
-				return
-			}
+		errCode := db.ErrorCode(err)
+		if errCode == db.UniqueViolation || errCode == db.ForeignKeyViolation {
+			server.logger.Log.Error().Err(err).Msg("create entry db error foreign_key_violation or unique_violation")
+			ctx.JSON(http.StatusConflict, utils.ErrorResponse(err))
+			return
 		}
 		server.logger.Log.Error().Err(err).Msg("create entry error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
@@ -61,7 +58,7 @@ func (server *Server) getEntry(ctx *gin.Context) {
 	// get entry
 	entry, err := server.store.GetEntry(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get entry db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
@@ -117,7 +114,7 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	// get entry
 	entry, err := server.store.GetEntry(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get entry for update db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
@@ -154,7 +151,7 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	// get entry
 	entry, err := server.store.GetEntry(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get entry for delete db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
@@ -166,13 +163,11 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	// delete entry
 	err = server.store.DeleteEntry(ctx, req.ID)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation":
-				server.logger.Log.Error().Err(err).Msg("delete entry db error foreign_key_violation or unique_violation")
-				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
-				return
-			}
+		errCode := db.ErrorCode(err)
+		if errCode == db.UniqueViolation || errCode == db.ForeignKeyViolation {
+			server.logger.Log.Error().Err(err).Msg("delete entry db error foreign_key_violation or unique_violation")
+			ctx.JSON(http.StatusConflict, utils.ErrorResponse(err))
+			return
 		}
 		server.logger.Log.Error().Err(err).Msg("delete entry error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))

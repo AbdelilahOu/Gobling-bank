@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 
 	"github.com/AbdelilahOu/GoThingy/api"
@@ -11,7 +11,7 @@ import (
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/hibiken/asynq"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		logger.Fatal("cannot load config:", err)
 	}
 	// connect to db
-	conn, err := sql.Open(config.DBDriver, config.DBSource)
+	pgPoom, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		logger.Fatal("cannot connect to db:", err)
 	}
@@ -30,7 +30,7 @@ func main() {
 		Addr: config.RedisAddress,
 	}
 	taskDistributor := worker.NewRedisTaskDistributor(redisOps)
-	store := db.NewStore(conn)
+	store := db.NewStore(pgPoom)
 	go runTaskProcessor(config, redisOps, store)
 	// create store and server
 	server, err := api.NewServer(config, store, taskDistributor, *logger)

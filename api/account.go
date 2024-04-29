@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type createAccountRequest struct {
@@ -34,13 +32,11 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		Balance:  0,
 	})
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation":
-				server.logger.Log.Error().Err(err).Msg("create account db error foreign_key_violation or unique_violation")
-				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
-				return
-			}
+		errCode := db.ErrorCode(err)
+		if errCode == db.UniqueViolation || errCode == db.ForeignKeyViolation {
+			server.logger.Log.Error().Err(err).Msg("create account db error foreign_key_violation or unique_violation")
+			ctx.JSON(http.StatusConflict, utils.ErrorResponse(err))
+			return
 		}
 		server.logger.Log.Error().Err(err).Msg("create account error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
@@ -65,7 +61,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	// get account
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get account db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
@@ -133,7 +129,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 	// get account
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get account for update db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
@@ -171,7 +167,7 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	// get account
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get account for delete db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return
@@ -183,13 +179,11 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	// delete account
 	err = server.store.DeleteAccount(ctx, req.ID)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation":
-				server.logger.Log.Error().Err(err).Msg("delete account db error foreign_key_violation or unique_violation")
-				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
-				return
-			}
+		errCode := db.ErrorCode(err)
+		if errCode == db.UniqueViolation || errCode == db.ForeignKeyViolation {
+			server.logger.Log.Error().Err(err).Msg("delete account db error foreign_key_violation or unique_violation")
+			ctx.JSON(http.StatusConflict, utils.ErrorResponse(err))
+			return
 		}
 		server.logger.Log.Error().Err(err).Msg("delete account error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))

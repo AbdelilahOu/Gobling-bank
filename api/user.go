@@ -1,7 +1,7 @@
 package api
 
 import (
-	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
-	"github.com/lib/pq"
 )
 
 type createUserRequest struct {
@@ -66,13 +65,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 	// create user
 	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "unique_violation":
-				server.logger.Log.Error().Err(err).Msg("create user db error unique_violation")
-				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
-				return
-			}
+		if db.ErrorCode(err) == db.UniqueViolation {
+			server.logger.Log.Error().Err(err).Msg("create user db error unique_violation")
+			ctx.JSON(http.StatusConflict, utils.ErrorResponse(err))
+			return
 		}
 		server.logger.Log.Error().Err(err).Msg("create user error unique_violation")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
@@ -113,7 +109,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	// get user
 	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get user db error no row found")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 type CreateTransferRequest struct {
@@ -51,13 +49,11 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		Amount:        req.Amount,
 	})
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation":
-				server.logger.Log.Error().Err(err).Msg("create transfer db error foreign_key_violation or unique_violation")
-				ctx.JSON(http.StatusForbidden, utils.ErrorResponse(err))
-				return
-			}
+		errCode := db.ErrorCode(err)
+		if errCode == db.UniqueViolation || errCode == db.ForeignKeyViolation {
+			server.logger.Log.Error().Err(err).Msg("create transfer db error foreign_key_violation or unique_violation")
+			ctx.JSON(http.StatusConflict, utils.ErrorResponse(err))
+			return
 		}
 		server.logger.Log.Error().Err(err).Msg("create transfer error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
@@ -70,7 +66,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 func (server *Server) validAccount(ctx *gin.Context, accountID uuid.UUID, currency string) (db.Account, bool) {
 	account, err := server.store.GetAccount(ctx, accountID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			server.logger.Log.Error().Err(err).Msg("get account for transfer db error")
 			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
 			return account, false
