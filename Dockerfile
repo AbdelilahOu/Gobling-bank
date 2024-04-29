@@ -13,7 +13,7 @@ WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrate.linux-amd64 ./migrate
 COPY db/migrations ./migrations
-COPY app.env .
+COPY dev.env .
 COPY start.sh .
 COPY wait-for.sh .
 
