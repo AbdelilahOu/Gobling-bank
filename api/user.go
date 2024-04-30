@@ -126,14 +126,14 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 	// generate token
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, user.Role, server.config.AccessTokenDuration)
 	if err != nil {
 		server.logger.Log.Error().Err(err).Msg("user login create access token error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
 		return
 	}
 	// generate refresh token
-	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.RefreshTokenDuration)
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, user.Role, server.config.RefreshTokenDuration)
 	if err != nil {
 		server.logger.Log.Error().Err(err).Msg("user login create refresh token error")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
