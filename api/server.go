@@ -51,6 +51,7 @@ func NewServer(config config.Config, store db.Store, taskDistributor worker.Task
 
 	authRoutes := router.Group("/").Use(AuthMiddleware(tokenMaker))
 
+	authRoutes.PUT("/users", server.updateUser)
 	authRoutes.POST("/accounts", server.createAccount)
 	authRoutes.GET("/accounts/:id", server.getAccount)
 	authRoutes.GET("/accounts", server.listAccounts)
