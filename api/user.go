@@ -7,11 +7,13 @@ import (
 	"time"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
+	"github.com/AbdelilahOu/GoThingy/token"
 	"github.com/AbdelilahOu/GoThingy/utils"
 	"github.com/AbdelilahOu/GoThingy/worker"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type createUserRequest struct {
@@ -171,33 +173,23 @@ type verifyEmailResponse struct {
 	IsVerified bool `json:"is_verified"`
 }
 
+type verifyEmailRequest struct {
+	EmailID    uuid.UUID `form:"id" binding:"required"`
+	SecretCode string    `form:"secret_code" binding:"required"`
+}
+
 func (server *Server) verifyEmail(ctx *gin.Context) {
-	// get params
-	EmailID, ok := ctx.GetQuery("id")
-	if !ok && EmailID == "" {
-		err := fmt.Errorf("error getting id param")
+	var req verifyEmailRequest
+	// validate the request
+	if err := ctx.ShouldBindQuery(&req); err != nil {
 		server.logger.Log.Error().Err(err).Msg("invalid request")
-		ctx.JSON(http.StatusBadRequest, err)
-		return
-	}
-	ID, err := uuid.Parse(EmailID)
-	if err != nil {
-		server.logger.Log.Error().Err(err).Msg("invalid id param")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
-		return
-	}
-	//
-	SecretCode, ok := ctx.GetQuery("secret_code")
-	if !ok && SecretCode == "" {
-		err := fmt.Errorf("error getting secret_code param")
-		server.logger.Log.Error().Err(err).Msg("invalid request")
-		ctx.JSON(http.StatusBadRequest, err)
 		return
 	}
 	//  verufy email
 	result, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParams{
-		EmailId:    ID,
-		SecretCode: SecretCode,
+		EmailId:    req.EmailID,
+		SecretCode: req.SecretCode,
 	})
 	if err != nil {
 		server.logger.Log.Error().Err(err).Msg("couldnt verify email")
@@ -207,4 +199,66 @@ func (server *Server) verifyEmail(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, verifyEmailResponse{
 		IsVerified: result.User.IsEmailVerified,
 	})
+}
+
+type updateUserRequest struct {
+	Username string `json:"username"`
+	FullName string `json:"full_name"`
+}
+
+func (server *Server) updateUser(ctx *gin.Context) {
+	var req updateUserRequest
+	// validate the request
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		server.logger.Log.Error().Err(err).Msg("invalid request")
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(err))
+		return
+	}
+	//
+	value, exists := ctx.Get(authorizationPayloadKey)
+	if !exists {
+		server.logger.Log.Error().Msg("no payload object")
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(fmt.Errorf("no payload object set")))
+		return
+	}
+	payload := value.(*token.Payload)
+	if !utils.HasPermission(payload.Role, []string{utils.BankerRole, utils.DepositorRole}) {
+		server.logger.Log.Error().Msg("user role doesnt have permission")
+		ctx.JSON(http.StatusConflict, utils.ErrorResponse(fmt.Errorf("user role doesnt have permission")))
+		return
+	}
+	fmt.Println(payload)
+	// get user
+	user, err := server.store.GetUser(ctx, req.Username)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			server.logger.Log.Error().Err(err).Msg("get user for update db error no row found")
+			ctx.JSON(http.StatusNotFound, utils.ErrorResponse(err))
+			return
+		}
+		server.logger.Log.Error().Err(err).Msg("get user for update error no row found")
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	//
+	if payload.Role != utils.BankerRole && payload.Username != user.Username {
+		server.logger.Log.Error().Msg("user name doesnt match payload")
+		ctx.JSON(http.StatusConflict, utils.ErrorResponse(fmt.Errorf("username doesnt match")))
+		return
+	}
+	// update user
+	user, err = server.store.UpdateUser(ctx, db.UpdateUserParams{
+		Username: req.Username,
+		FullName: pgtype.Text{
+			Valid:  true,
+			String: req.FullName,
+		},
+	})
+	if err != nil {
+		server.logger.Log.Error().Err(err).Msg("update user db error")
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(err))
+		return
+	}
+	// return res
+	ctx.JSON(http.StatusOK, user)
 }
