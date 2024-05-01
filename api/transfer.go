@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	db "github.com/AbdelilahOu/GoThingy/db/sqlc"
@@ -29,10 +30,23 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+	//
+	value, exists := ctx.Get(authorizationPayloadKey)
+	if !exists {
+		server.logger.Log.Error().Msg("no payload object")
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(fmt.Errorf("no payload object set")))
+		return
+	}
+	payload := value.(*token.Payload)
+	if !utils.HasPermission(payload.Role, []string{utils.BankerRole, utils.DepositorRole}) {
+		server.logger.Log.Error().Msg("user role doesnt have permission")
+		ctx.JSON(http.StatusConflict, utils.ErrorResponse(fmt.Errorf("user role doesnt have permission")))
+		return
+	}
 	// get user from token
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	// check if user is the owner of the account
-	if authPayload.Username != fromAccount.Owner {
+	if payload.Role != utils.BankerRole && authPayload.Username != fromAccount.Owner {
 		err := errors.New("from account doesn't belong to authenticated user")
 		server.logger.Log.Error().Err(err)
 		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(err))

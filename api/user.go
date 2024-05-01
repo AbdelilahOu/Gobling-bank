@@ -227,7 +227,6 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusConflict, utils.ErrorResponse(fmt.Errorf("user role doesnt have permission")))
 		return
 	}
-	fmt.Println(payload)
 	// get user
 	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
